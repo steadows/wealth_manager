@@ -166,7 +166,7 @@ Lane A (Models)                    Lane B (Repos + Enums)           Lane C (Xcod
 **Merge point:** All models + repos must compile together before Sprint 2
 **Gate:** `1.32 Model unit tests` + `1.33 Repository unit tests` pass (80%+ coverage)
 
-### [ ] Sprint 2: Data Foundation — Views & Navigation (1 week)
+### [x] Sprint 2: Data Foundation — Views & Navigation (1 week)
 ```
 Lane A (Shell + Dashboard + Theme)  Lane B (Accounts)                Lane C (Goals + Budget + Profile)
 ──────────────────────────────────  ──────────────────               ─────────────────────────────────
@@ -608,8 +608,8 @@ Use `swift-protocol-di-testing` patterns: protocol-based DI so views never touch
 
 ### 1D — App Shell & Navigation
 
-- [ ] 1.14 **Delete Item.swift** — remove placeholder model
-- [ ] 1.15 **Update wealth_managerApp.swift** — register all SwiftData models in schema, set up `ModelContainer`, inject repositories via `@Environment`:
+- [x] 1.14 **Delete Item.swift** — remove placeholder model
+- [x] 1.15 **Update wealth_managerApp.swift** — register all SwiftData models in schema, set up `ModelContainer`, inject repositories via `@Environment`:
   ```swift
   @main struct WealthManagerApp: App {
       let container: ModelContainer
@@ -628,7 +628,7 @@ Use `swift-protocol-di-testing` patterns: protocol-based DI so views never touch
   }
   ```
 
-- [ ] 1.16 **MainSplitView.swift** — replace ContentView as root view. NavigationSplitView with frosted glass sidebar matching the design system. Flat nav list (no grouped sections — matches Stitch mockups):
+- [x] 1.16 **MainSplitView.swift** — replace ContentView as root view. NavigationSplitView with frosted glass sidebar matching the design system. Flat nav list (no grouped sections — matches Stitch mockups):
   ```swift
   enum AppSection: String, CaseIterable, Identifiable {
       case dashboard, netWorth, accounts, budget, goals, aiAdvisor, reports, planning
@@ -668,7 +668,7 @@ Use `swift-protocol-di-testing` patterns: protocol-based DI so views never touch
 
 Use `swift-mvvm` skill: small ViewModels with `@Observable`, no business logic in views. Use `swiftui-patterns` for state management and navigation.
 
-- [ ] 1.17 **DashboardViewModel.swift** — `@Observable` class:
+- [x] 1.17 **DashboardViewModel.swift** — `@Observable` class:
   ```swift
   @Observable final class DashboardViewModel {
       private let accountRepo: AccountRepository
@@ -689,9 +689,9 @@ Use `swift-mvvm` skill: small ViewModels with `@Observable`, no business logic i
   }
   ```
 
-- [ ] 1.18 **DashboardView.swift** — macOS detail pane: net worth hero card, health score ring, quick action toolbar buttons, recent transactions table (macOS Table, not List). Uses Swift Charts for mini net worth sparkline. Fills the detail column when Dashboard is selected in sidebar.
+- [x] 1.18 **DashboardView.swift** — macOS detail pane: net worth hero card, health score ring, quick action toolbar buttons, recent transactions table (macOS Table, not List). Uses Swift Charts for mini net worth sparkline. Fills the detail column when Dashboard is selected in sidebar.
 
-- [ ] 1.19 **AccountsViewModel.swift** — Groups accounts by type, computes section totals, handles add/delete:
+- [x] 1.19 **AccountsViewModel.swift** — Groups accounts by type, computes section totals, handles add/delete:
   ```swift
   var groupedAccounts: [AccountType: [Account]]
   func addAccount(_ account: Account) async throws
@@ -699,9 +699,9 @@ Use `swift-mvvm` skill: small ViewModels with `@Observable`, no business logic i
   func refreshBalances() async
   ```
 
-- [ ] 1.20 **AccountsListView.swift** — Content column: sectioned list grouped by AccountType. Each section shows type header + subtotal. Each row: institution name, account name, balance. Right-click context menu (edit, delete, hide). Selection drives detail column. Toolbar: "Add Account" button, filter dropdown.
+- [x] 1.20 **AccountsListView.swift** — Content column: sectioned list grouped by AccountType. Each section shows type header + subtotal. Each row: institution name, account name, balance. Right-click context menu (edit, delete, hide). Selection drives detail column. Toolbar: "Add Account" button, filter dropdown.
 
-- [ ] 1.21 **AccountDetailViewModel.swift** — Loads transactions for account, supports filtering:
+- [x] 1.21 **AccountDetailViewModel.swift** — Loads transactions for account, supports filtering:
   ```swift
   var account: Account
   var transactions: [Transaction]
@@ -711,11 +711,11 @@ Use `swift-mvvm` skill: small ViewModels with `@Observable`, no business logic i
   func filterByCategory(_ category: TransactionCategory?) async
   ```
 
-- [ ] 1.22 **AccountDetailView.swift** — Detail column: account header with balance + institution + last synced. Picker (segmented): Transactions | Analytics. Transactions: macOS `Table` with sortable columns (Date, Merchant, Category, Amount, Status). Search bar + category filter chips. Analytics: spending breakdown chart. Double-click transaction row to edit in sheet.
+- [x] 1.22 **AccountDetailView.swift** — Detail column: account header with balance + institution + last synced. Picker (segmented): Transactions | Analytics. Transactions: macOS `Table` with sortable columns (Date, Merchant, Category, Amount, Status). Search bar + category filter chips. Analytics: spending breakdown chart. Double-click transaction row to edit in sheet.
 
-- [ ] 1.23 **AddAccountView.swift** — macOS `.sheet()` modal: choice between "Link Account" (Phase 3: WKWebView Plaid) and "Add Manually". Manual form: account type picker, institution name, account name, balance decimal input, currency picker (default USD). Cancel + Save buttons. Keyboard shortcut: Cmd+N.
+- [x] 1.23 **AddAccountView.swift** — macOS `.sheet()` modal: choice between "Link Account" (Phase 3: WKWebView Plaid) and "Add Manually". Manual form: account type picker, institution name, account name, balance decimal input, currency picker (default USD). Cancel + Save buttons. Keyboard shortcut: Cmd+N.
 
-- [ ] 1.24 **GoalsViewModel.swift** — CRUD for goals, sorted by priority:
+- [x] 1.24 **GoalsViewModel.swift** — CRUD for goals, sorted by priority:
   ```swift
   var goals: [FinancialGoal]
   func addGoal(_ goal: FinancialGoal) async throws
@@ -724,17 +724,17 @@ Use `swift-mvvm` skill: small ViewModels with `@Observable`, no business logic i
   func reorderGoals(_ goals: [FinancialGoal]) async throws
   ```
 
-- [ ] 1.25 **GoalsListView.swift** — Content column: list with circular progress rings, goal name, current/target amounts, projected date. Drag to reorder priority. Selection drives GoalDetailView in detail column. Right-click context menu. Toolbar: "Add Goal" button.
+- [x] 1.25 **GoalsListView.swift** — Content column: list with circular progress rings, goal name, current/target amounts, projected date. Drag to reorder priority. Selection drives GoalDetailView in detail column. Right-click context menu. Toolbar: "Add Goal" button.
 
-- [ ] 1.26 **GoalDetailView.swift** — Large progress ring, milestone markers, contribution history, edit button. Phase 2 adds projection chart here.
+- [x] 1.26 **GoalDetailView.swift** — Large progress ring, milestone markers, contribution history, edit button. Phase 2 adds projection chart here.
 
-- [ ] 1.27 **AddGoalView.swift** — Form: goal type picker, name, target amount, target date (optional), monthly contribution, priority, notes.
+- [x] 1.27 **AddGoalView.swift** — Form: goal type picker, name, target amount, target date (optional), monthly contribution, priority, notes.
 
-- [ ] 1.28 **ProfileView.swift + ProfileViewModel.swift** — Form for UserProfile fields: date of birth, annual income, monthly expenses, filing status, state, retirement age, risk tolerance, dependents, spouse info. Auto-saves on edit.
+- [x] 1.28 **ProfileView.swift + ProfileViewModel.swift** — Form for UserProfile fields: date of birth, annual income, monthly expenses, filing status, state, retirement age, risk tolerance, dependents, spouse info. Auto-saves on edit.
 
 ### 1F — Budget & Planning Views
 
-- [ ] 1.36 **BudgetViewModel.swift** — `@Observable` class:
+- [x] 1.36 **BudgetViewModel.swift** — `@Observable` class:
   ```swift
   var selectedMonth: Date  // current month
   var categories: [BudgetCategorySummary]  // category + spent + limit + trend
@@ -744,19 +744,19 @@ Use `swift-mvvm` skill: small ViewModels with `@Observable`, no business logic i
   func loadBudget(for month: Date) async
   func updateCategoryLimit(_ category: TransactionCategory, limit: Decimal) async throws
   ```
-- [ ] 1.37 **BudgetView.swift** — Detail view matching Stitch `97ec8693`: month selector glass pill, budget summary bar (income/spent/remaining with gradient progress), AI insight card, 2x4 category grid (glass cards with progress rings), spending trend area chart (actual vs budget dashed line). Over-budget categories glow red.
-- [ ] 1.38 **PlanningView.swift** — Placeholder hub view with glass cards for Retirement, Tax, Debt, Insurance. Each card shows key metric + "Explore" button. Full implementations in Sprint 8. AI insight card with holistic planning advice.
+- [x] 1.37 **BudgetView.swift** — Detail view matching Stitch `97ec8693`: month selector glass pill, budget summary bar (income/spent/remaining with gradient progress), AI insight card, 2x4 category grid (glass cards with progress rings), spending trend area chart (actual vs budget dashed line). Over-budget categories glow red.
+- [x] 1.38 **PlanningView.swift** — Placeholder hub view with glass cards for Retirement, Tax, Debt, Insurance. Each card shows key metric + "Explore" button. Full implementations in Sprint 8. AI insight card with holistic planning advice.
 
 ### 1F2 — Design System & Reusable Components
 
-- [ ] 1.35 **Theme/ directory** — Design system tokens from Stitch mockups:
+- [x] 1.35 **Theme/ directory** — Design system tokens from Stitch mockups:
   - `Theme/WMColors.swift` — All color tokens from design system (background, glassBg, glassBorder, primary, secondary, tertiary, glow, positive, negative, textPrimary, textMuted)
   - `Theme/WMGlassModifier.swift` — `.glassCard()` ViewModifier (25px blur, 10% white bg, 12% luminous border, blue-tinted shadow)
   - `Theme/WMTypography.swift` — Font styles (heroNumber: Inter thin 48pt, heading: Inter semibold, body: Inter regular, muted: Inter regular + 50% opacity)
   - `Theme/WMComponents.swift` — `AIInsightCard` (frosted glass + cyan orb + text), `GlassButton`, `GlassPill`
-- [ ] 1.29 **Components/CurrencyText.swift** — Formats `Decimal` as currency string with locale support. Handles sign coloring (green glow positive, red glow negative per design system).
-- [ ] 1.30 **Components/ProgressRing.swift** — Circular progress indicator with gradient stroke (blue-to-cyan), percentage label, customizable size. Over-threshold turns red.
-- [ ] 1.31 **Components/EmptyStateView.swift** — Generic empty state with icon, title, description, action button. Frosted glass card styling.
+- [x] 1.29 **Components/CurrencyText.swift** — Formats `Decimal` as currency string with locale support. Handles sign coloring (green glow positive, red glow negative per design system).
+- [x] 1.30 **Components/ProgressRing.swift** — Circular progress indicator with gradient stroke (blue-to-cyan), percentage label, customizable size. Over-threshold turns red.
+- [x] 1.31 **Components/EmptyStateView.swift** — Generic empty state with icon, title, description, action button. Frosted glass card styling.
 
 ### 1G — Testing
 
@@ -764,8 +764,8 @@ Use `tdd-workflow`: write tests FIRST (red), then implement (green), then refact
 
 - [x] 1.32 **Model unit tests** — Test computed properties, initializers, Codable conformance for all 9 models (including BudgetCategory). Example: Account.isAsset returns true for checking, false for creditCard. Debt.monthlyInterest computes correctly. BudgetCategory.isOverBudget triggers correctly.
 - [x] 1.33 **Repository unit tests** — Use mock repositories to test CRUD operations, filtering, sorting. Verify protocol conformance. Test edge cases: empty results, duplicate IDs, concurrent access.
-- [ ] 1.34 **ViewModel unit tests** — Inject mock repositories. Test: DashboardViewModel.loadDashboard populates all fields. AccountsViewModel.groupedAccounts groups correctly. GoalsViewModel.reorderGoals updates priorities. BudgetViewModel.loadBudget computes category summaries correctly.
-- [ ] 1.35 **Build + run verification** — Clean build, run on simulator, verify tab navigation, add/edit/delete accounts and goals manually.
+- [x] 1.34 **ViewModel unit tests** — Inject mock repositories. Test: DashboardViewModel.loadDashboard populates all fields. AccountsViewModel.groupedAccounts groups correctly. GoalsViewModel.reorderGoals updates priorities. BudgetViewModel.loadBudget computes category summaries correctly.
+- [x] 1.35 **Build + run verification** — Clean build, run on simulator, verify tab navigation, add/edit/delete accounts and goals manually.
 
 ---
 
