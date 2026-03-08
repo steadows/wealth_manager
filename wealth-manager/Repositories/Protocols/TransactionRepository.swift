@@ -1,0 +1,13 @@
+import Foundation
+
+protocol TransactionRepository {
+    func fetchAll() async throws -> [Transaction]
+    func fetchById(_ id: UUID) async throws -> Transaction?
+    func fetchByAccount(_ accountId: UUID) async throws -> [Transaction]
+    func fetchByDateRange(_ range: ClosedRange<Date>) async throws -> [Transaction]
+    func fetchByCategory(_ category: TransactionCategory) async throws -> [Transaction]
+    func fetchRecent(limit: Int) async throws -> [Transaction]
+    func create(_ transaction: Transaction) async throws
+    func update(_ transaction: Transaction) async throws
+    func delete(_ transaction: Transaction) async throws
+}
