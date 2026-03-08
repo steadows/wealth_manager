@@ -150,7 +150,7 @@ Lane A (Stitch+Design)     Lane B (Research)
 ```
 **Gate:** 5 Stitch reference screens approved ✓. Remaining screens designed in-code using the established design system. Lane B research complete — findings in `docs/research-sprint0-lane-b.md`.
 
-### [ ] Sprint 1: Data Foundation — Models & Repos (1 week)
+### [x] Sprint 1: Data Foundation — Models & Repos (1 week)
 ```
 Lane A (Models)                    Lane B (Repos + Enums)           Lane C (Xcode Setup)
 ──────────────────                 ─────────────────────            ──────────────────
@@ -395,9 +395,9 @@ Design system finalized: **Holographic JARVIS glassmorphism** (see Design System
 
 ### 1A — Xcode Project Setup & Directory Structure
 
-- [ ] 1.0 **Add macOS destination to Xcode project.** Current project targets iOS 26.2. In Xcode: Target > General > Supported Destinations > add "Mac". Alternatively, create a fresh macOS SwiftUI + SwiftData project if easier. Verify SwiftData schema compiles for macOS. Set minimum deployment: macOS 15.0.
+- [x] 1.0 **Add macOS destination to Xcode project.** Current project targets iOS 26.2. In Xcode: Target > General > Supported Destinations > add "Mac". Alternatively, create a fresh macOS SwiftUI + SwiftData project if easier. Verify SwiftData schema compiles for macOS. Set minimum deployment: macOS 15.0.
 
-- [ ] 1.1 **Create project directory structure.** All new Swift files go under `wealth-manager/wealth-manager/`:
+- [x] 1.1 **Create project directory structure.** All new Swift files go under `wealth-manager/wealth-manager/`:
   ```
   Models/
     Enums/
@@ -423,7 +423,7 @@ Design system finalized: **Holographic JARVIS glassmorphism** (see Design System
   Theme/          # Design system tokens (colors, glass modifiers, typography)
   ```
 
-- [ ] 1.2 **Create all enum types** in `Models/Enums/`. Each enum conforms to `String, Codable, CaseIterable, Identifiable`. Include `displayName` computed property for UI.
+- [x] 1.2 **Create all enum types** in `Models/Enums/`. Each enum conforms to `String, Codable, CaseIterable, Identifiable`. Include `displayName` computed property for UI.
   - `AccountType.swift`: checking, savings, creditCard, investment, loan, retirement, other
   - `TransactionCategory.swift`: income, housing, transportation, food, utilities, healthcare, entertainment, shopping, education, personalCare, travel, gifts, fees, transfer, other
   - `GoalType.swift`: retirement, emergencyFund, homePurchase, debtPayoff, education, travel, investment, custom
@@ -437,7 +437,7 @@ Design system finalized: **Holographic JARVIS glassmorphism** (see Design System
 
 All models use `@Model` macro, `Decimal` for money fields (never `Double`), and immutable patterns where possible. Use `swift-actor-persistence` for thread-safe access patterns.
 
-- [ ] 1.3 **Account.swift** — `@Model` class with:
+- [x] 1.3 **Account.swift** — `@Model` class with:
   ```swift
   @Attribute(.unique) var id: UUID
   var plaidAccountId: String?
@@ -457,7 +457,7 @@ All models use `@Model` macro, `Decimal` for money fields (never `Double`), and 
   ```
   Computed properties: `isAsset: Bool` (checking/savings/investment/retirement), `isLiability: Bool` (creditCard/loan), `formattedBalance: String` (currency formatted)
 
-- [ ] 1.4 **Transaction.swift** — `@Model` with:
+- [x] 1.4 **Transaction.swift** — `@Model` with:
   ```swift
   @Attribute(.unique) var id: UUID
   var plaidTransactionId: String?
@@ -473,7 +473,7 @@ All models use `@Model` macro, `Decimal` for money fields (never `Double`), and 
   var createdAt: Date
   ```
 
-- [ ] 1.5 **InvestmentHolding.swift** — `@Model` with:
+- [x] 1.5 **InvestmentHolding.swift** — `@Model` with:
   ```swift
   @Attribute(.unique) var id: UUID
   var account: Account
@@ -489,7 +489,7 @@ All models use `@Model` macro, `Decimal` for money fields (never `Double`), and 
   ```
   Computed: `gainLoss: Decimal?` (currentValue - (costBasis ?? 0) * quantity), `gainLossPercent: Decimal?`
 
-- [ ] 1.6 **Debt.swift** — `@Model` with:
+- [x] 1.6 **Debt.swift** — `@Model` with:
   ```swift
   @Attribute(.unique) var id: UUID
   var account: Account?  // optional — manual debts may not link to an account
@@ -506,7 +506,7 @@ All models use `@Model` macro, `Decimal` for money fields (never `Double`), and 
   ```
   Computed: `monthlyInterest: Decimal` (currentBalance * interestRate / 12), `payoffProgress: Decimal` (1 - currentBalance/originalBalance)
 
-- [ ] 1.7 **FinancialGoal.swift** — `@Model` with:
+- [x] 1.7 **FinancialGoal.swift** — `@Model` with:
   ```swift
   @Attribute(.unique) var id: UUID
   var goalName: String
@@ -523,7 +523,7 @@ All models use `@Model` macro, `Decimal` for money fields (never `Double`), and 
   ```
   Computed: `progressPercent: Decimal` (currentAmount / targetAmount), `remainingAmount: Decimal`, `isOnTrack: Bool` (projection vs target date)
 
-- [ ] 1.8 **UserProfile.swift** — `@Model`, singleton pattern (only one per app):
+- [x] 1.8 **UserProfile.swift** — `@Model`, singleton pattern (only one per app):
   ```swift
   @Attribute(.unique) var id: UUID
   var dateOfBirth: Date?
@@ -541,7 +541,7 @@ All models use `@Model` macro, `Decimal` for money fields (never `Double`), and 
   ```
   Computed: `age: Int?` (from dateOfBirth), `yearsToRetirement: Int?`, `householdIncome: Decimal?`
 
-- [ ] 1.9 **NetWorthSnapshot.swift** — `@Model`, created periodically to track history:
+- [x] 1.9 **NetWorthSnapshot.swift** — `@Model`, created periodically to track history:
   ```swift
   @Attribute(.unique) var id: UUID
   var date: Date
@@ -550,7 +550,7 @@ All models use `@Model` macro, `Decimal` for money fields (never `Double`), and 
   var netWorth: Decimal  // totalAssets - totalLiabilities
   ```
 
-- [ ] 1.10 **FinancialHealthScore.swift** — `@Model`:
+- [x] 1.10 **FinancialHealthScore.swift** — `@Model`:
   ```swift
   @Attribute(.unique) var id: UUID
   var date: Date
@@ -562,7 +562,7 @@ All models use `@Model` macro, `Decimal` for money fields (never `Double`), and 
   var insuranceScore: Int  // coverage adequacy
   ```
 
-- [ ] 1.10b **BudgetCategory.swift** — `@Model` with:
+- [x] 1.10b **BudgetCategory.swift** — `@Model` with:
   ```swift
   @Attribute(.unique) var id: UUID
   var category: TransactionCategory
@@ -578,7 +578,7 @@ All models use `@Model` macro, `Decimal` for money fields (never `Double`), and 
 
 Use `swift-protocol-di-testing` patterns: protocol-based DI so views never touch SwiftData directly. Each repository protocol has a mock implementation for testing.
 
-- [ ] 1.11 **Repository protocols** in `Repositories/Protocols/`:
+- [x] 1.11 **Repository protocols** in `Repositories/Protocols/`:
   ```swift
   // AccountRepository.swift
   protocol AccountRepository {
@@ -594,7 +594,7 @@ Use `swift-protocol-di-testing` patterns: protocol-based DI so views never touch
   ```
   Same pattern for: `TransactionRepository` (with date range filtering, category filtering, pagination), `DebtRepository`, `GoalRepository`, `UserProfileRepository` (singleton fetch/update), `SnapshotRepository` (fetch by date range, create)
 
-- [ ] 1.12 **SwiftData repository implementations** in `Repositories/`:
+- [x] 1.12 **SwiftData repository implementations** in `Repositories/`:
   - `SwiftDataAccountRepository.swift` — uses `@ModelActor` for thread-safe background access
   - `SwiftDataTransactionRepository.swift` — supports `#Predicate` for filtering by date, category, account
   - `SwiftDataDebtRepository.swift`
@@ -602,7 +602,7 @@ Use `swift-protocol-di-testing` patterns: protocol-based DI so views never touch
   - `SwiftDataUserProfileRepository.swift`
   - `SwiftDataSnapshotRepository.swift`
 
-- [ ] 1.13 **Mock repositories** in `Repositories/Mocks/` for testing:
+- [x] 1.13 **Mock repositories** in `Repositories/Mocks/` for testing:
   - `MockAccountRepository.swift` — in-memory array, returns predefined data
   - Same for each repository — these use `swift-protocol-di-testing` patterns
 
@@ -762,8 +762,8 @@ Use `swift-mvvm` skill: small ViewModels with `@Observable`, no business logic i
 
 Use `tdd-workflow`: write tests FIRST (red), then implement (green), then refactor (improve). Target 80%+ coverage.
 
-- [ ] 1.32 **Model unit tests** — Test computed properties, initializers, Codable conformance for all 9 models (including BudgetCategory). Example: Account.isAsset returns true for checking, false for creditCard. Debt.monthlyInterest computes correctly. BudgetCategory.isOverBudget triggers correctly.
-- [ ] 1.33 **Repository unit tests** — Use mock repositories to test CRUD operations, filtering, sorting. Verify protocol conformance. Test edge cases: empty results, duplicate IDs, concurrent access.
+- [x] 1.32 **Model unit tests** — Test computed properties, initializers, Codable conformance for all 9 models (including BudgetCategory). Example: Account.isAsset returns true for checking, false for creditCard. Debt.monthlyInterest computes correctly. BudgetCategory.isOverBudget triggers correctly.
+- [x] 1.33 **Repository unit tests** — Use mock repositories to test CRUD operations, filtering, sorting. Verify protocol conformance. Test edge cases: empty results, duplicate IDs, concurrent access.
 - [ ] 1.34 **ViewModel unit tests** — Inject mock repositories. Test: DashboardViewModel.loadDashboard populates all fields. AccountsViewModel.groupedAccounts groups correctly. GoalsViewModel.reorderGoals updates priorities. BudgetViewModel.loadBudget computes category summaries correctly.
 - [ ] 1.35 **Build + run verification** — Clean build, run on simulator, verify tab navigation, add/edit/delete accounts and goals manually.
 
