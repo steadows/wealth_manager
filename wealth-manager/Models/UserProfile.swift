@@ -7,10 +7,21 @@ final class UserProfile {
     var dateOfBirth: Date?
     var annualIncome: Decimal?
     var monthlyExpenses: Decimal?
-    var filingStatus: FilingStatus = FilingStatus.single
+    var filingStatusRawValue: String = FilingStatus.single.rawValue
+
+    @Transient var filingStatus: FilingStatus {
+        get { FilingStatus(rawValue: filingStatusRawValue) ?? .single }
+        set { filingStatusRawValue = newValue.rawValue }
+    }
+
     var stateOfResidence: String?
     var retirementAge: Int = 65
-    var riskTolerance: RiskTolerance = RiskTolerance.moderate
+    var riskToleranceRawValue: String = RiskTolerance.moderate.rawValue
+
+    @Transient var riskTolerance: RiskTolerance {
+        get { RiskTolerance(rawValue: riskToleranceRawValue) ?? .moderate }
+        set { riskToleranceRawValue = newValue.rawValue }
+    }
     var dependents: Int = 0
     var hasSpouse: Bool = false
     var spouseIncome: Decimal?
@@ -55,10 +66,10 @@ final class UserProfile {
         self.dateOfBirth = dateOfBirth
         self.annualIncome = annualIncome
         self.monthlyExpenses = monthlyExpenses
-        self.filingStatus = filingStatus
+        self.filingStatusRawValue = filingStatus.rawValue
         self.stateOfResidence = stateOfResidence
         self.retirementAge = retirementAge
-        self.riskTolerance = riskTolerance
+        self.riskToleranceRawValue = riskTolerance.rawValue
         self.dependents = dependents
         self.hasSpouse = hasSpouse
         self.spouseIncome = spouseIncome

@@ -39,7 +39,7 @@ actor SwiftDataTransactionRepository: TransactionRepository {
     func fetchByCategory(_ category: TransactionCategory) async throws -> [Transaction] {
         let rawCategory = category.rawValue
         let descriptor = FetchDescriptor<Transaction>(
-            predicate: #Predicate { $0.category.rawValue == rawCategory },
+            predicate: #Predicate { $0.categoryRawValue == rawCategory },
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
         return try modelContext.fetch(descriptor)

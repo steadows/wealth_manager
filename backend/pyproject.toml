@@ -1,0 +1,20 @@
+[project]
+name = "wealth-manager-api"
+version = "0.1.0"
+description = "Wealth Manager FastAPI Backend"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 99
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "RUF"]
+ignore = ["B008", "UP046", "RUF012"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

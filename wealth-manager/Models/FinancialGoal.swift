@@ -5,7 +5,13 @@ import SwiftData
 final class FinancialGoal {
     @Attribute(.unique) var id: UUID
     var goalName: String
-    var goalType: GoalType
+    var goalTypeRawValue: String
+
+    @Transient var goalType: GoalType {
+        get { GoalType(rawValue: goalTypeRawValue) ?? .custom }
+        set { goalTypeRawValue = newValue.rawValue }
+    }
+
     var targetAmount: Decimal
     var currentAmount: Decimal
     var targetDate: Date?
@@ -57,7 +63,7 @@ final class FinancialGoal {
     ) {
         self.id = id
         self.goalName = goalName
-        self.goalType = goalType
+        self.goalTypeRawValue = goalType.rawValue
         self.targetAmount = targetAmount
         self.currentAmount = currentAmount
         self.targetDate = targetDate

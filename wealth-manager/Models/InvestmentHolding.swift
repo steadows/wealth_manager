@@ -11,8 +11,20 @@ final class InvestmentHolding {
     var costBasis: Decimal?
     var currentPrice: Decimal
     @Transient var currentValue: Decimal { quantity * currentPrice }
-    var holdingType: HoldingType
-    var assetClass: AssetClass
+    var holdingTypeRawValue: String
+
+    @Transient var holdingType: HoldingType {
+        get { HoldingType(rawValue: holdingTypeRawValue) ?? .other }
+        set { holdingTypeRawValue = newValue.rawValue }
+    }
+
+    var assetClassRawValue: String
+
+    @Transient var assetClass: AssetClass {
+        get { AssetClass(rawValue: assetClassRawValue) ?? .alternative }
+        set { assetClassRawValue = newValue.rawValue }
+    }
+    var purchaseDate: Date?
     var lastPriceUpdate: Date
 
     var gainLoss: Decimal? {
@@ -37,6 +49,7 @@ final class InvestmentHolding {
         currentPrice: Decimal,
         holdingType: HoldingType,
         assetClass: AssetClass,
+        purchaseDate: Date? = nil,
         lastPriceUpdate: Date = Date()
     ) {
         self.id = id
@@ -46,8 +59,9 @@ final class InvestmentHolding {
         self.quantity = quantity
         self.costBasis = costBasis
         self.currentPrice = currentPrice
-        self.holdingType = holdingType
-        self.assetClass = assetClass
+        self.holdingTypeRawValue = holdingType.rawValue
+        self.assetClassRawValue = assetClass.rawValue
+        self.purchaseDate = purchaseDate
         self.lastPriceUpdate = lastPriceUpdate
     }
 }

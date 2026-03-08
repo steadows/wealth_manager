@@ -181,7 +181,7 @@ Lane A (Shell + Dashboard + Theme)  Lane B (Accounts)                Lane C (Goa
 **Gate:** `1.34 ViewModel unit tests` pass, app builds + runs on macOS, sidebar nav works with all 8 sections
 **Sprint end:** `/verify` + `/code-review` + `git commit`
 
-### [ ] Sprint 3: Calc Engine + Backend Scaffold (parallel tracks, 2 weeks)
+### [x] Sprint 3: Calc Engine + Backend Scaffold (parallel tracks, 2 weeks)
 ```
 Lane A (Swift Calculators)          Lane B (Python Backend)           Lane C (Plaid Signup + Research)
 ──────────────────────────          ───────────────────────           ────────────────────────────
@@ -784,7 +784,7 @@ Use `tdd-workflow`: write tests FIRST (red), then implement (green), then refact
 
 Each calculator is a `struct` with static methods. No dependencies, no state — pure math.
 
-- [ ] 2.1 **CompoundInterestCalculator.swift** in `Services/Calculators/`:
+- [x] 2.1 **CompoundInterestCalculator.swift** in `Services/Calculators/`:
   ```swift
   struct CompoundInterestCalculator {
       /// Future value of a lump sum: FV = PV * (1 + r/n)^(n*t)
@@ -804,7 +804,7 @@ Each calculator is a `struct` with static methods. No dependencies, no state —
   }
   ```
 
-- [ ] 2.2 **RetirementCalculator.swift**:
+- [x] 2.2 **RetirementCalculator.swift**:
   ```swift
   struct RetirementCalculator {
       struct FIREResult {
@@ -836,7 +836,7 @@ Each calculator is a `struct` with static methods. No dependencies, no state —
   }
   ```
 
-- [ ] 2.3 **DebtCalculator.swift**:
+- [x] 2.3 **DebtCalculator.swift**:
   ```swift
   struct DebtCalculator {
       struct AmortizationEntry {
@@ -873,7 +873,7 @@ Each calculator is a `struct` with static methods. No dependencies, no state —
   }
   ```
 
-- [ ] 2.4 **TaxCalculator.swift**:
+- [x] 2.4 **TaxCalculator.swift**:
   ```swift
   struct TaxCalculator {
       /// 2026 federal tax brackets (update annually)
@@ -899,7 +899,7 @@ Each calculator is a `struct` with static methods. No dependencies, no state —
   }
   ```
 
-- [ ] 2.5 **NetWorthProjector.swift**:
+- [x] 2.5 **NetWorthProjector.swift**:
   ```swift
   struct NetWorthProjector {
       struct ProjectionPoint {
@@ -935,7 +935,7 @@ Each calculator is a `struct` with static methods. No dependencies, no state —
   }
   ```
 
-- [ ] 2.6 **HealthScoreCalculator.swift**:
+- [x] 2.6 **HealthScoreCalculator.swift**:
   ```swift
   struct HealthScoreCalculator {
       /// Composite financial health score (0-100)
@@ -957,7 +957,7 @@ Each calculator is a `struct` with static methods. No dependencies, no state —
   }
   ```
 
-- [ ] 2.7 **InsuranceCalculator.swift**:
+- [x] 2.7 **InsuranceCalculator.swift**:
   ```swift
   struct InsuranceCalculator {
       /// Life insurance needs using DIME method
@@ -976,7 +976,7 @@ Each calculator is a `struct` with static methods. No dependencies, no state —
 
 ### 2B — Services
 
-- [ ] 2.8 **NetWorthService.swift** — Orchestrates snapshot creation:
+- [x] 2.8 **NetWorthService.swift** — Orchestrates snapshot creation:
   ```swift
   @Observable final class NetWorthService {
       private let accountRepo: AccountRepository
@@ -993,7 +993,7 @@ Each calculator is a `struct` with static methods. No dependencies, no state —
   }
   ```
 
-- [ ] 2.9 **ProjectionService.swift** — Wraps calculators with user context:
+- [x] 2.9 **ProjectionService.swift** — Wraps calculators with user context:
   ```swift
   @Observable final class ProjectionService {
       func netWorthProjection(profile: UserProfile, currentNetWorth: Decimal, years: Int) async -> [ScenarioResult]
@@ -1025,14 +1025,14 @@ Each calculator is a `struct` with static methods. No dependencies, no state —
 
 ### 2D — Testing
 
-- [ ] 2.13 **Calculator unit tests** — Exhaustive tests for every calculator method. Use known financial formulas to verify. Example test cases:
+- [x] 2.13 **Calculator unit tests** — Exhaustive tests for every calculator method. Use known financial formulas to verify. Example test cases:
   - CompoundInterest: $10,000 at 7% for 30 years = $76,122.55 (verify to the penny)
   - FIRE: $40k expenses at 4% = $1M FIRE number
   - Amortization: verify total payments = principal + total interest
   - Tax brackets: verify against IRS published tables
   - Monte Carlo: verify output range is reasonable, percentiles ordered correctly
 
-- [ ] 2.14 **Decimal compliance audit** — Grep entire codebase for `Double` in financial contexts. All money values must be `Decimal`.
+- [x] 2.14 **Decimal compliance audit** — Grep entire codebase for `Double` in financial contexts. All money values must be `Decimal`.
 
 - [ ] 2.15 **Integration tests** — Test ProjectionService end-to-end with mock repos: create profile + accounts → generate projections → verify output structure.
 
@@ -1062,7 +1062,7 @@ Search for macOS WKWebView Plaid Link integration examples
 
 Use `python-patterns` (PEP 8, type hints, pathlib) and `backend-patterns` (repository pattern, service layer).
 
-- [ ] 3.1 **Scaffold FastAPI project** at `backend/`:
+- [x] 3.1 **Scaffold FastAPI project** at `backend/`:
   ```
   backend/
     app/
@@ -1128,7 +1128,7 @@ Use `python-patterns` (PEP 8, type hints, pathlib) and `backend-patterns` (repos
     .env.example
   ```
 
-- [ ] 3.2 **config.py** — Pydantic `BaseSettings` with:
+- [x] 3.2 **config.py** — Pydantic `BaseSettings` with:
   ```python
   class Settings(BaseSettings):
       database_url: str
@@ -1149,7 +1149,7 @@ Use `python-patterns` (PEP 8, type hints, pathlib) and `backend-patterns` (repos
 
 Use `postgres-patterns` for data types and indexing. Use `database-migrations` for safe Alembic migrations.
 
-- [ ] 3.3 **SQLAlchemy models** — Map to iOS SwiftData models:
+- [x] 3.3 **SQLAlchemy models** — Map to iOS SwiftData models:
   ```python
   # models/user.py
   class User(Base):
@@ -1169,7 +1169,7 @@ Use `postgres-patterns` for data types and indexing. Use `database-migrations` f
   ```
   Use `Numeric(precision=19, scale=4)` for all money columns. Use `timestamptz` for all dates.
 
-- [ ] 3.4 **Alembic setup** — `alembic init migrations`, configure `env.py` for async SQLAlchemy, create initial migration with all tables.
+- [x] 3.4 **Alembic setup** — `alembic init migrations`, configure `env.py` for async SQLAlchemy, create initial migration with all tables.
 
 ### 3C — Auth
 
@@ -1265,14 +1265,14 @@ Use `plaid-fintech` skill for Link token flows, transaction sync patterns, and e
 
 Use `docker-patterns` for multi-service compose with health checks.
 
-- [ ] 3.13 **Dockerfile** — multi-stage build:
+- [x] 3.13 **Dockerfile** — multi-stage build:
   ```dockerfile
   FROM python:3.12-slim AS base
   # Install dependencies, copy app, run with uvicorn
   HEALTHCHECK CMD curl -f http://localhost:8000/health || exit 1
   ```
 
-- [ ] 3.14 **docker-compose.yml** — 3 services:
+- [x] 3.14 **docker-compose.yml** — 3 services:
   ```yaml
   services:
     api:

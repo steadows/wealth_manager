@@ -9,7 +9,13 @@ final class Transaction {
     var amount: Decimal
     var date: Date
     var merchantName: String?
-    var category: TransactionCategory
+    var categoryRawValue: String
+
+    @Transient var category: TransactionCategory {
+        get { TransactionCategory(rawValue: categoryRawValue) ?? .other }
+        set { categoryRawValue = newValue.rawValue }
+    }
+
     var subcategory: String?
     var note: String?
     var isRecurring: Bool = false
@@ -36,7 +42,7 @@ final class Transaction {
         self.amount = amount
         self.date = date
         self.merchantName = merchantName
-        self.category = category
+        self.categoryRawValue = category.rawValue
         self.subcategory = subcategory
         self.note = note
         self.isRecurring = isRecurring

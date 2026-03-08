@@ -7,7 +7,13 @@ final class Account {
     var plaidAccountId: String?
     var institutionName: String
     var accountName: String
-    var accountType: AccountType
+    var accountTypeRawValue: String
+
+    @Transient var accountType: AccountType {
+        get { AccountType(rawValue: accountTypeRawValue) ?? .other }
+        set { accountTypeRawValue = newValue.rawValue }
+    }
+
     var currentBalance: Decimal
     var availableBalance: Decimal?
     var currency: String = "USD"
@@ -69,7 +75,7 @@ final class Account {
         self.plaidAccountId = plaidAccountId
         self.institutionName = institutionName
         self.accountName = accountName
-        self.accountType = accountType
+        self.accountTypeRawValue = accountType.rawValue
         self.currentBalance = currentBalance
         self.availableBalance = availableBalance
         self.currency = currency

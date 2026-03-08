@@ -6,7 +6,13 @@ final class Debt {
     @Attribute(.unique) var id: UUID
     var account: Account?
     var debtName: String
-    var debtType: DebtType
+    var debtTypeRawValue: String
+
+    @Transient var debtType: DebtType {
+        get { DebtType(rawValue: debtTypeRawValue) ?? .other }
+        set { debtTypeRawValue = newValue.rawValue }
+    }
+
     var originalBalance: Decimal
     var currentBalance: Decimal
     var interestRate: Decimal
@@ -42,7 +48,7 @@ final class Debt {
         self.id = id
         self.account = account
         self.debtName = debtName
-        self.debtType = debtType
+        self.debtTypeRawValue = debtType.rawValue
         self.originalBalance = originalBalance
         self.currentBalance = currentBalance
         self.interestRate = interestRate

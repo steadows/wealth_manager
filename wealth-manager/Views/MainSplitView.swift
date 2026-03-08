@@ -169,6 +169,7 @@ struct MainSplitView: View {
                         ? WMColors.primary
                         : WMColors.textPrimary
                 )
+                .tag(section)
         }
         .listStyle(.sidebar)
         .scrollContentBackground(.hidden)

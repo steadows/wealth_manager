@@ -26,7 +26,7 @@ actor SwiftDataBudgetCategoryRepository: BudgetCategoryRepository {
                 predicate: #Predicate { $0.month == month && $0.year == year }
             )
         )
-        if existing.contains(where: { $0.category == budget.category }) {
+        if existing.contains(where: { $0.categoryRawValue == budget.categoryRawValue }) {
             throw RepositoryError.duplicateBudgetCategory
         }
         modelContext.insert(budget)

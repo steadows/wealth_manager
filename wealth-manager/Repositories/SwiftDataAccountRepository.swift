@@ -21,7 +21,7 @@ actor SwiftDataAccountRepository: AccountRepository {
     func fetchByType(_ type: AccountType) async throws -> [Account] {
         let rawType = type.rawValue
         let descriptor = FetchDescriptor<Account>(
-            predicate: #Predicate { $0.accountType.rawValue == rawType },
+            predicate: #Predicate { $0.accountTypeRawValue == rawType },
             sortBy: [SortDescriptor(\.institutionName)]
         )
         return try modelContext.fetch(descriptor)
@@ -49,7 +49,7 @@ actor SwiftDataAccountRepository: AccountRepository {
             AccountType.retirement.rawValue
         ]
         let descriptor = FetchDescriptor<Account>(
-            predicate: #Predicate { assetTypes.contains($0.accountType.rawValue) }
+            predicate: #Predicate { assetTypes.contains($0.accountTypeRawValue) }
         )
         let accounts = try modelContext.fetch(descriptor)
         return accounts.reduce(Decimal.zero) { $0 + $1.currentBalance }
@@ -61,7 +61,7 @@ actor SwiftDataAccountRepository: AccountRepository {
             AccountType.loan.rawValue
         ]
         let descriptor = FetchDescriptor<Account>(
-            predicate: #Predicate { liabilityTypes.contains($0.accountType.rawValue) }
+            predicate: #Predicate { liabilityTypes.contains($0.accountTypeRawValue) }
         )
         let accounts = try modelContext.fetch(descriptor)
         return accounts.reduce(Decimal.zero) { $0 + $1.currentBalance }

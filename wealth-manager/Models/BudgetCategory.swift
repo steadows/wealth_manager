@@ -4,7 +4,13 @@ import SwiftData
 @Model
 final class BudgetCategory {
     @Attribute(.unique) var id: UUID
-    var category: TransactionCategory
+    var categoryRawValue: String
+
+    @Transient var category: TransactionCategory {
+        get { TransactionCategory(rawValue: categoryRawValue) ?? .other }
+        set { categoryRawValue = newValue.rawValue }
+    }
+
     var monthlyLimit: Decimal
     var month: Int
     var year: Int
@@ -30,7 +36,7 @@ final class BudgetCategory {
         updatedAt: Date = Date()
     ) {
         self.id = id
-        self.category = category
+        self.categoryRawValue = category.rawValue
         self.monthlyLimit = monthlyLimit
         self.month = month
         self.year = year
