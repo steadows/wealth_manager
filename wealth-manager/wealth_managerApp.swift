@@ -1,32 +1,29 @@
-//
-//  wealth_managerApp.swift
-//  wealth-manager
-//
-//  Created by Steve Meadows on 3/7/26.
-//
-
 import SwiftUI
 import SwiftData
 
 @main
 struct wealth_managerApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+    let container: ModelContainer
 
+    init() {
+        let schema = Schema([
+            Account.self, Transaction.self, InvestmentHolding.self,
+            Debt.self, FinancialGoal.self, UserProfile.self,
+            NetWorthSnapshot.self, FinancialHealthScore.self,
+            BudgetCategory.self
+        ])
+        let config = ModelConfiguration(schema: schema)
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            container = try ModelContainer(for: schema, configurations: [config])
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }
-    }()
+    }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainSplitView()
         }
-        .modelContainer(sharedModelContainer)
+        .modelContainer(container)
     }
 }
