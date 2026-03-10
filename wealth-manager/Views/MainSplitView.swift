@@ -238,7 +238,7 @@ struct MainSplitView: View {
                     .background(WMColors.background)
             }
         case .netWorth:
-            placeholderView(title: "Net Worth", icon: "chart.line.uptrend.xyaxis")
+            netWorthDetail
         case .accounts:
             accountDetail
         case .budget:
@@ -254,6 +254,50 @@ struct MainSplitView: View {
         case nil:
             placeholderView(title: "Wealth Manager", icon: "dollarsign.circle")
         }
+    }
+
+    @State private var netWorthTab: Int = 0
+
+    @ViewBuilder
+    private var netWorthDetail: some View {
+        let container = modelContext.container
+        let accountRepo = SwiftDataAccountRepository(modelContainer: container)
+        let snapshotRepo = SwiftDataSnapshotRepository(modelContainer: container)
+        let profileRepo = SwiftDataUserProfileRepository(modelContainer: container)
+
+        VStack(spacing: 0) {
+            Picker("View", selection: $netWorthTab) {
+                Text("Net Worth").tag(0)
+                Text("Projections").tag(1)
+                Text("What If").tag(2)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+            .padding(.bottom, 8)
+
+            switch netWorthTab {
+            case 0:
+                NetWorthView(
+                    accountRepo: accountRepo,
+                    snapshotRepo: snapshotRepo,
+                    profileRepo: profileRepo
+                )
+            case 1:
+                ProjectionView(
+                    accountRepo: accountRepo,
+                    profileRepo: profileRepo
+                )
+            case 2:
+                WhatIfView(
+                    accountRepo: accountRepo,
+                    profileRepo: profileRepo
+                )
+            default:
+                EmptyView()
+            }
+        }
+        .background(WMColors.background)
     }
 
     @ViewBuilder

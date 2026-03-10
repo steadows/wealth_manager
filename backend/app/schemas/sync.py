@@ -1,16 +1,41 @@
-"""Sync Pydantic schemas (Sprint 3 stubs)."""
+"""Sync Pydantic schemas for delta sync between client and server."""
+
+from __future__ import annotations
+
+from datetime import datetime
 
 from pydantic import BaseModel
 
-
-class SyncRequest(BaseModel):
-    """Request to sync data from client to server."""
-
-    last_sync_timestamp: str | None = None
+from app.schemas.account import AccountCreate, AccountResponse
+from app.schemas.debt import DebtCreate, DebtResponse
+from app.schemas.goal import GoalCreate, GoalResponse
+from app.schemas.snapshot import SnapshotResponse
+from app.schemas.transaction import TransactionResponse
 
 
 class SyncResponse(BaseModel):
-    """Response containing sync delta."""
+    """Response containing all data modified since the requested timestamp."""
 
-    status: str = "not_implemented"
-    synced_at: str | None = None
+    accounts: list[AccountResponse] = []
+    transactions: list[TransactionResponse] = []
+    goals: list[GoalResponse] = []
+    debts: list[DebtResponse] = []
+    snapshots: list[SnapshotResponse] = []
+    synced_at: datetime
+
+
+class ClientChanges(BaseModel):
+    """Payload of changes pushed from the client device."""
+
+    accounts: list[AccountCreate] = []
+    goals: list[GoalCreate] = []
+    debts: list[DebtCreate] = []
+
+
+class SyncResult(BaseModel):
+    """Result of applying client changes on the server."""
+
+    applied_accounts: int = 0
+    applied_goals: int = 0
+    applied_debts: int = 0
+    synced_at: datetime

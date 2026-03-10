@@ -8,7 +8,7 @@ from app.schemas.goal import GoalCreate, GoalResponse, GoalUpdate
 from app.schemas.holding import HoldingCreate, HoldingResponse, HoldingUpdate
 from app.schemas.plaid import PlaidLinkRequest, PlaidLinkResponse
 from app.schemas.snapshot import SnapshotCreate, SnapshotResponse
-from app.schemas.sync import SyncRequest, SyncResponse
+from app.schemas.sync import ClientChanges, SyncResponse, SyncResult
 from app.schemas.transaction import TransactionCreate, TransactionResponse, TransactionUpdate
 from app.schemas.user import UserProfileResponse, UserProfileUpdate, UserResponse
 
@@ -17,6 +17,7 @@ __all__ = [
     "AccountCreate",
     "AccountResponse",
     "AccountUpdate",
+    "ClientChanges",
     "DebtCreate",
     "DebtResponse",
     "DebtUpdate",
@@ -34,8 +35,8 @@ __all__ = [
     "PlaidLinkResponse",
     "SnapshotCreate",
     "SnapshotResponse",
-    "SyncRequest",
     "SyncResponse",
+    "SyncResult",
     "TokenResponse",
     "TransactionCreate",
     "TransactionResponse",

@@ -1,12 +1,15 @@
 """FastAPI dependency injection providers."""
 
+from __future__ import annotations
+
 import uuid
 from collections.abc import AsyncGenerator
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import async_session_factory
+from app.services.auth_service import verify_token
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -20,13 +23,28 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             raise
 
 
-async def get_current_user() -> uuid.UUID:
-    """Return the current authenticated user ID.
+async def get_current_user(request: Request) -> uuid.UUID:
+    """Extract and verify JWT from the Authorization header.
 
-    Sprint 3 stub: raises 501. Will be replaced with JWT validation in Sprint 4.
-    Override this dependency in tests with a fixture user.
+    Returns the authenticated user's UUID.
+
+    Raises:
+        HTTPException: 401 if token is missing, malformed, or invalid.
     """
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Authentication not yet implemented",
-    )
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid authorization header",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token = auth_header.removeprefix("Bearer ").strip()
+    try:
+        return verify_token(token)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from exc

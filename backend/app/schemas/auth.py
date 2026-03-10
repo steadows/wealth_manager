@@ -1,6 +1,11 @@
-"""Authentication Pydantic schemas (Sprint 3 stubs)."""
+"""Authentication Pydantic schemas."""
 
-from pydantic import BaseModel
+from __future__ import annotations
+
+import uuid
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict
 
 
 class LoginRequest(BaseModel):
@@ -21,3 +26,13 @@ class TokenResponse(BaseModel):
 
     access_token: str
     token_type: str = "bearer"
+
+
+class UserResponse(BaseModel):
+    """Authenticated user info response."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    email: str | None = None
+    created_at: datetime
