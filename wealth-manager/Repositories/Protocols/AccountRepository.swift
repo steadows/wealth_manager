@@ -7,6 +7,7 @@ protocol AccountRepository {
     func create(_ account: Account) async throws
     func update(_ account: Account) async throws
     func delete(_ account: Account) async throws
+    func upsert(_ account: Account) async throws
     func totalAssets() async throws -> Decimal
     func totalLiabilities() async throws -> Decimal
 }

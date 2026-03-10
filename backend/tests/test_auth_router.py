@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import uuid
-from unittest.mock import AsyncMock, patch
 
 import pytest
 from jose import jwt

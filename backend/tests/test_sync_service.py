@@ -335,3 +335,125 @@ async def test_apply_empty_client_changes(session: AsyncSession) -> None:
     assert result.applied_accounts == 0
     assert result.applied_goals == 0
     assert result.applied_debts == 0
+
+
+@pytest.mark.asyncio
+async def test_apply_multiple_records_per_type(session: AsyncSession) -> None:
+    """apply_client_changes correctly counts multiple records per entity type."""
+    await _create_test_user(session, TEST_USER_ID)
+
+    changes = ClientChanges(
+        accounts=[
+            {
+                "institution_name": "Bank A",
+                "account_name": "Checking A",
+                "account_type": AccountType.CHECKING,
+                "current_balance": Decimal("1000.0000"),
+                "is_manual": True,
+            },
+            {
+                "institution_name": "Bank B",
+                "account_name": "Savings B",
+                "account_type": AccountType.SAVINGS,
+                "current_balance": Decimal("5000.0000"),
+                "is_manual": True,
+            },
+        ],
+        goals=[
+            {
+                "goal_name": "Goal 1",
+                "goal_type": GoalType.EMERGENCY_FUND,
+                "target_amount": Decimal("10000.0000"),
+                "priority": 1,
+            },
+            {
+                "goal_name": "Goal 2",
+                "goal_type": GoalType.TRAVEL,
+                "target_amount": Decimal("3000.0000"),
+                "priority": 2,
+            },
+        ],
+        debts=[
+            {
+                "debt_name": "Debt 1",
+                "debt_type": DebtType.PERSONAL,
+                "original_balance": Decimal("5000.0000"),
+                "current_balance": Decimal("4000.0000"),
+                "interest_rate": Decimal("0.0800"),
+                "minimum_payment": Decimal("150.0000"),
+                "is_fixed_rate": True,
+            },
+        ],
+    )
+
+    service = SyncService(session)
+    result = await service.apply_client_changes(TEST_USER_ID, changes)
+
+    assert result.applied_accounts == 2
+    assert result.applied_goals == 2
+    assert result.applied_debts == 1
+
+
+@pytest.mark.asyncio
+async def test_apply_changes_assigns_user_id(session: AsyncSession) -> None:
+    """Applied records are correctly assigned to the requesting user."""
+    await _create_test_user(session, TEST_USER_ID)
+
+    changes = ClientChanges(
+        accounts=[
+            {
+                "institution_name": "User Bank",
+                "account_name": "User Checking",
+                "account_type": AccountType.CHECKING,
+                "current_balance": Decimal("2000.0000"),
+                "is_manual": True,
+            },
+        ],
+    )
+
+    service = SyncService(session)
+    await service.apply_client_changes(TEST_USER_ID, changes)
+
+    # Verify the created account belongs to the user
+    payload = await service.get_changes_since(TEST_USER_ID, since=None)
+    assert len(payload.accounts) == 1
+    assert payload.accounts[0].account_name == "User Checking"
+
+    # Other user should see nothing
+    await _create_test_user(session, OTHER_USER_ID)
+    other_payload = await service.get_changes_since(OTHER_USER_ID, since=None)
+    assert len(other_payload.accounts) == 0
+
+
+@pytest.mark.asyncio
+async def test_sync_returns_synced_at_timestamp(session: AsyncSession) -> None:
+    """Both get_changes_since and apply_client_changes return a synced_at timestamp."""
+    await _create_test_user(session, TEST_USER_ID)
+
+    service = SyncService(session)
+
+    before = datetime.now(UTC)
+    get_result = await service.get_changes_since(TEST_USER_ID, since=None)
+    assert get_result.synced_at >= before
+
+    changes = ClientChanges()
+    apply_result = await service.apply_client_changes(TEST_USER_ID, changes)
+    assert apply_result.synced_at >= before
+
+
+@pytest.mark.asyncio
+async def test_delta_sync_boundary_exact_timestamp(session: AsyncSession) -> None:
+    """Delta sync with since=exact_time of a record should NOT include it (strictly greater)."""
+    exact_time = datetime(2025, 6, 1, tzinfo=UTC)
+    old_time = datetime(2025, 1, 1, tzinfo=UTC)
+    await _seed_data(session, TEST_USER_ID, old_time=old_time, new_time=exact_time)
+
+    service = SyncService(session)
+    # Since equals the new_time exactly — strictly > should exclude it
+    payload = await service.get_changes_since(TEST_USER_ID, since=exact_time)
+
+    assert len(payload.accounts) == 0
+    assert len(payload.transactions) == 0
+    assert len(payload.goals) == 0
+    assert len(payload.debts) == 0
+    assert len(payload.snapshots) == 0

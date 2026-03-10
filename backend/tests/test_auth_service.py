@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 import uuid
 from datetime import UTC, datetime, timedelta
-from unittest.mock import patch
 
 import pytest
 from jose import jwt
@@ -23,7 +22,6 @@ from app.services.auth_service import (
     decode_apple_identity_token,
     verify_token,
 )
-
 
 SECRET = "test-secret-not-for-production"
 ALGORITHM = "HS256"
@@ -86,12 +84,12 @@ class TestVerifyToken:
             "iat": datetime.now(UTC) - timedelta(hours=2),
         }
         token = jwt.encode(payload, SECRET, algorithm=ALGORITHM)
-        with pytest.raises(ValueError, match="expired|invalid"):
+        with pytest.raises(ValueError, match=r"expired|invalid"):
             verify_token(token)
 
     def test_invalid_token_raises(self) -> None:
         """verify_token should raise ValueError for a malformed token."""
-        with pytest.raises(ValueError, match="expired|invalid"):
+        with pytest.raises(ValueError, match=r"expired|invalid"):
             verify_token("not.a.valid.token")
 
     def test_wrong_secret_raises(self) -> None:
@@ -102,7 +100,7 @@ class TestVerifyToken:
             "iat": datetime.now(UTC),
         }
         token = jwt.encode(payload, "wrong-secret", algorithm=ALGORITHM)
-        with pytest.raises(ValueError, match="expired|invalid"):
+        with pytest.raises(ValueError, match=r"expired|invalid"):
             verify_token(token)
 
     def test_missing_sub_raises(self) -> None:
@@ -112,7 +110,7 @@ class TestVerifyToken:
             "iat": datetime.now(UTC),
         }
         token = jwt.encode(payload, SECRET, algorithm=ALGORITHM)
-        with pytest.raises(ValueError, match="expired|invalid"):
+        with pytest.raises(ValueError, match=r"expired|invalid"):
             verify_token(token)
 
 

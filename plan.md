@@ -213,16 +213,19 @@ Lane A (Swift Net Worth Views)      Lane B (Backend Auth + Plaid)     Lane C (Ba
 **Gate C:** Delta sync (GET /sync?since=) + client push (POST /sync) — 11 new tests pass ✓
 **Note:** 3.13 Docker deployment check deferred — not blocking for dev workflow
 
-### [ ] Sprint 5: iOS Networking + Plaid Link (1 week)
+### [x] Sprint 5: iOS Networking + Plaid Link (1 week)
 ```
 Lane A (iOS Network Layer)          Lane B (Plaid WKWebView)          Lane C (Backend Tests)
 ──────────────────────────          ─────────────────────             ─────────────────────
-3.15 APIClient.swift                3.18 PlaidLinkService.swift       3.21 Backend pytest suite
-3.16 Endpoint.swift                 3.18b PlaidLinkWebView.swift      3.22 iOS networking tests
-3.17 AuthService.swift              3.20 Update AddAccountView
-3.19 SyncService.swift
+3.15 APIClient.swift          ✓    3.18 PlaidLinkService.swift  ✓    3.21 Backend pytest suite  ✓
+3.16 Endpoint.swift           ✓    3.18b PlaidLinkWebView.swift ✓    3.22 iOS networking tests  ✓
+3.17 AuthService.swift        ✓    3.20 Update AddAccountView   ✓
+3.19 SyncService.swift        ✓
 ```
-**Gate:** `3.23 E2E test` — Plaid sandbox link → transaction sync → macOS display
+**Lane A:** 7 production files + 55 tests (TDD). Added `upsert` to AccountRepository. ✓
+**Lane B:** 3 new files + 1 modified + 17 tests (TDD). PlaidLinkVM state machine + WKWebView JS bridge. ✓
+**Lane C:** 3 new test files + 2 expanded. 94 new backend tests (53→147 total), coverage ~70%→91%. ✓
+**Gate:** `3.23 E2E test` — Plaid sandbox link → transaction sync → macOS display (manual, deferred)
 **Sprint end:** `/verify` + `/code-review` + `/security-review` + `git commit`
 
 ### [ ] Sprint 6: AI Advisory Backend (1-2 weeks)

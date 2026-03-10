@@ -41,6 +41,28 @@ actor SwiftDataAccountRepository: AccountRepository {
         try modelContext.save()
     }
 
+    func upsert(_ account: Account) async throws {
+        let id = account.id
+        let descriptor = FetchDescriptor<Account>(
+            predicate: #Predicate { $0.id == id }
+        )
+        if let existing = try modelContext.fetch(descriptor).first {
+            existing.institutionName = account.institutionName
+            existing.accountName = account.accountName
+            existing.accountTypeRawValue = account.accountTypeRawValue
+            existing.currentBalance = account.currentBalance
+            existing.availableBalance = account.availableBalance
+            existing.currency = account.currency
+            existing.isManual = account.isManual
+            existing.isHidden = account.isHidden
+            existing.lastSyncedAt = account.lastSyncedAt
+            existing.updatedAt = account.updatedAt
+        } else {
+            modelContext.insert(account)
+        }
+        try modelContext.save()
+    }
+
     func totalAssets() async throws -> Decimal {
         let assetTypes: Set<String> = [
             AccountType.checking.rawValue,

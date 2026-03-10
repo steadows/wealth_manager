@@ -2,6 +2,7 @@ import Foundation
 
 final class MockAccountRepository: AccountRepository {
     var items: [Account] = []
+    var upsertedAccounts: [Account] = []
 
     func fetchAll() async throws -> [Account] {
         items
@@ -28,6 +29,15 @@ final class MockAccountRepository: AccountRepository {
 
     func delete(_ account: Account) async throws {
         items.removeAll { $0.id == account.id }
+    }
+
+    func upsert(_ account: Account) async throws {
+        upsertedAccounts.append(account)
+        if let index = items.firstIndex(where: { $0.id == account.id }) {
+            items[index] = account
+        } else {
+            items.append(account)
+        }
     }
 
     func totalAssets() async throws -> Decimal {
