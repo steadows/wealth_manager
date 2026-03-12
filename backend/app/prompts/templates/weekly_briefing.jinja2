@@ -1,0 +1,38 @@
+## Financial Briefing — {{ period | capitalize }}
+
+### Net Worth
+- Current: ${{ "%.2f" | format(snapshot.net_worth) }}
+- Assets: ${{ "%.2f" | format(snapshot.total_assets) }}
+- Liabilities: ${{ "%.2f" | format(snapshot.total_liabilities) }}
+{% if calculations.net_worth_change is not none %}
+- Change: ${{ "%.2f" | format(calculations.net_worth_change) }} ({{ "%.1f" | format(calculations.net_worth_change_pct) }}%)
+{% endif %}
+
+### Income & Spending
+{% if snapshot.annual_income %}
+- Annual Income: ${{ "%.2f" | format(snapshot.annual_income) }}
+{% endif %}
+{% if snapshot.monthly_expenses %}
+- Monthly Expenses: ${{ "%.2f" | format(snapshot.monthly_expenses) }}
+{% endif %}
+
+### Top Spending Categories
+{% for cat in calculations.top_spending_categories[:3] %}
+- {{ cat.name }}: ${{ "%.2f" | format(cat.amount) }}
+{% endfor %}
+
+### Goal Progress
+{% for goal in snapshot.goals %}
+- {{ goal.goal_name }} ({{ goal.goal_type }}): ${{ "%.2f" | format(goal.current_amount) }} / ${{ "%.2f" | format(goal.target_amount) }}{% if goal.target_date %} — due {{ goal.target_date.strftime('%Y-%m-%d') }}{% endif %}
+
+{% endfor %}
+
+### Active Alerts
+{% for alert in calculations.alerts %}
+- [{{ alert.severity | upper }}] {{ alert.title }}: {{ alert.message }}
+{% endfor %}
+{% if not calculations.alerts %}
+No active alerts.
+{% endif %}
+
+Please generate the briefing report following the report_generator system prompt.

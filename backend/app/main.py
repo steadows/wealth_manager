@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.middleware.auth import AuthMiddleware
 from app.middleware.rate_limiter import RateLimiterMiddleware
-from app.routers import accounts, auth, health, plaid, sync, transactions, webhooks
+from app.routers import accounts, advisory, auth, health, plaid, sync, transactions, webhooks
 
 
 @asynccontextmanager
@@ -54,6 +54,7 @@ def create_app() -> FastAPI:
     app.include_router(plaid.router, prefix="/api/v1")
     app.include_router(webhooks.router, prefix="/api/v1")
     app.include_router(sync.router, prefix="/api/v1")
+    app.include_router(advisory.router, prefix="/api/v1")
 
     return app
 

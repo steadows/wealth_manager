@@ -1,0 +1,22 @@
+## Goal Coaching Request
+
+### Goal Details
+- Name: {{ goal.goal_name }}
+- Type: {{ goal.goal_type }}
+- Target: ${{ "%.2f" | format(goal.target_amount) }}
+- Current: ${{ "%.2f" | format(goal.current_amount) }}
+- Progress: {{ "%.1f" | format(goal.current_amount / goal.target_amount * 100) }}%
+{% if goal.target_date %}
+- Target Date: {{ goal.target_date.strftime('%Y-%m-%d') }}
+{% endif %}
+{% if goal.monthly_contribution %}
+- Monthly Contribution: ${{ "%.2f" | format(goal.monthly_contribution) }}
+{% endif %}
+
+### User Context
+- Annual Income: ${{ "%.2f" | format(snapshot.annual_income or 0) }}
+- Monthly Expenses: ${{ "%.2f" | format(snapshot.monthly_expenses or 0) }}
+- Risk Tolerance: {{ snapshot.risk_tolerance }}
+- Net Worth: ${{ "%.2f" | format(snapshot.net_worth) }}
+
+Please provide specific coaching advice for this goal: Is the user on track? What adjustments should they make? What's the projected outcome at the current pace?

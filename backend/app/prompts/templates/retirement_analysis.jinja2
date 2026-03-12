@@ -1,0 +1,33 @@
+## Retirement Analysis
+
+### Current Position
+- Portfolio Value: ${{ "%.2f" | format(calculations.portfolio_value) }}
+- Annual Income: ${{ "%.2f" | format(snapshot.annual_income or 0) }}
+- Monthly Expenses: ${{ "%.2f" | format(snapshot.monthly_expenses or 0) }}
+- Risk Tolerance: {{ snapshot.risk_tolerance }}
+
+### Retirement Parameters
+- Current Age: {{ calculations.current_age or "Unknown" }}
+- Retirement Age: {{ snapshot.retirement_age }}
+{% if calculations.years_to_retirement %}
+- Years to Retirement: {{ calculations.years_to_retirement }}
+{% endif %}
+- Filing Status: {{ snapshot.filing_status }}
+{% if snapshot.debts %}
+
+### Outstanding Debts at Retirement
+{% for debt in snapshot.debts %}
+- {{ debt.debt_name }}: ${{ "%.2f" | format(debt.current_balance) }} at {{ "%.2f" | format(debt.interest_rate * 100) }}%
+{% endfor %}
+{% endif %}
+
+### Projections
+- FIRE Number (25x annual expenses): ${{ "%.2f" | format(calculations.fire_number) }}
+{% if calculations.contribution_rate %}
+- Current Contribution Rate: {{ "%.1f" | format(calculations.contribution_rate * 100) }}%
+{% endif %}
+{% if calculations.projected_at_retirement %}
+- Projected Portfolio at Retirement: ${{ "%.2f" | format(calculations.projected_at_retirement) }}
+{% endif %}
+
+Please analyze retirement readiness: score (0-100), projected shortfall/surplus, FIRE timeline, and top 3 recommendations to improve the outcome.

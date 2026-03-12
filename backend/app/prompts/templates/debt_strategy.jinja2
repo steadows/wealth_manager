@@ -1,0 +1,23 @@
+## Debt Strategy Analysis
+
+### Current Debts
+{% for debt in snapshot.debts %}
+- {{ debt.debt_name }} ({{ debt.debt_type }}): ${{ "%.2f" | format(debt.current_balance) }} at {{ "%.2f" | format(debt.interest_rate * 100) }}% APR — min payment ${{ "%.2f" | format(debt.minimum_payment) }}/mo
+{% endfor %}
+
+### Summary
+- Total Debt: ${{ "%.2f" | format(calculations.total_debt) }}
+- Total Minimum Payments: ${{ "%.2f" | format(calculations.total_min_payments) }}/mo
+- Weighted Average Rate: {{ "%.2f" | format(calculations.weighted_avg_rate * 100) }}%
+
+### User Context
+- Annual Income: ${{ "%.2f" | format(snapshot.annual_income or 0) }}
+- Monthly Expenses: ${{ "%.2f" | format(snapshot.monthly_expenses or 0) }}
+{% if calculations.available_extra_payment %}
+- Available Extra Payment: ${{ "%.2f" | format(calculations.available_extra_payment) }}/mo
+{% endif %}
+{% if calculations.investment_return_rate %}
+- Portfolio Return Rate: {{ "%.2f" | format(calculations.investment_return_rate * 100) }}%
+{% endif %}
+
+Please analyze: avalanche vs snowball payoff order, total interest under each, refinancing opportunities, and whether extra payments should go to debt or investments given current rates.

@@ -1,0 +1,8 @@
+Generate a financial briefing report. Use these sections: Executive Summary, Net Worth Update, Key Insights (3 max), Action Items (prioritized), Goal Progress, Risk Alerts. Be concise — this is a dashboard summary, not an essay.
+
+Format guidelines:
+- Executive summary: 2-3 sentences max
+- Each insight: one clear finding with a specific number
+- Action items: imperative voice, specific and measurable
+- Goal progress: percentage and trajectory (on-track / behind / ahead)
+- Risk alerts: only include if a threshold is breached
