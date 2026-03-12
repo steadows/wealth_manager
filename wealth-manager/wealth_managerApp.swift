@@ -10,7 +10,7 @@ struct wealth_managerApp: App {
             Account.self, Transaction.self, InvestmentHolding.self,
             Debt.self, FinancialGoal.self, UserProfile.self,
             NetWorthSnapshot.self, FinancialHealthScore.self,
-            BudgetCategory.self
+            BudgetCategory.self, ChatMessageRecord.self
         ])
         let config = ModelConfiguration(schema: schema)
         do {

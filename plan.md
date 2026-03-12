@@ -228,27 +228,28 @@ Lane A (iOS Network Layer)          Lane B (Plaid WKWebView)          Lane C (Ba
 **Gate:** `3.23 E2E test` — Plaid sandbox link → transaction sync → macOS display (manual, deferred)
 **Sprint end:** `/verify` + `/code-review` + `/security-review` + `git commit`
 
-### [ ] Sprint 6: AI Advisory Backend (1-2 weeks)
+### [x] Sprint 6: AI Advisory Backend (1-2 weeks)
 ```
 Lane A (Claude Integration)         Lane B (Prompts + Reports)        Lane C (Alert Rules)
 ────────────────────────            ──────────────────────            ────────────────────
-4.1 claude_service.py               4.3 System prompts                4.7 alert_service.py
-4.2 prompt_manager.py               4.4 Jinja2 templates              (7 alert rules)
-4.5 advisory_service.py             4.6 report_service.py
-4.8 Advisory routers
+4.1 claude_service.py          ✓    4.3 System prompts           ✓    4.7 alert_service.py  ✓
+4.2 prompt_manager.py          ✓    4.4 Jinja2 templates         ✓    (7 alert rules)
+4.5 advisory_service.py        ✓    4.6 report_service.py        ✓
+4.8 Advisory routers           ✓
 ```
-**Gate:** `4.10 Backend tests` — mock Claude responses, verify prompt construction
+**Gate:** `4.16 Backend tests` — 45 tests, 192 total, 91% coverage, zero regressions ✓
 
-### [ ] Sprint 7: AI Advisory iOS (1 week)
+### [x] Sprint 7: AI Advisory iOS (1 week)
 ```
 Lane A (Chat UI)                    Lane B (Reports + Alerts)
 ────────────────                    ─────────────────────
-4.9 New SwiftData models            4.12 CFOBriefingViewModel
-4.10 AdvisorChatViewModel           4.13 CFOBriefingView
-4.11 AdvisorChatView                4.14 AlertsListView + VM
-4.15 Update MainSplitView           4.17 AdvisorService.swift
+4.9  New SwiftData models      ✓    4.12 CFOBriefingViewModel  ✓
+4.10 AdvisorChatViewModel      ✓    4.13 CFOBriefingView       ✓
+4.11 AdvisorChatView           ✓    4.14 AlertsListView + VM   ✓
+4.15 Update MainSplitView      ✓    4.17 AdvisorService.swift  ✓
 ```
-**Gate:** `4.18 E2E test` — calculation → prompt → Claude → rendered UI
+**Gate:** `4.18 E2E test` — calculation → prompt → Claude → rendered UI (manual, deferred)
+**Tests:** 18 new tests, all passing (6 chat ViewModel, 5 alerts, 6 briefing + 1 persistence)
 **Sprint end:** `/verify` + `/code-review` + `git commit`
 
 ### [ ] Sprint 8: Advanced Financial Tools (2 weeks)

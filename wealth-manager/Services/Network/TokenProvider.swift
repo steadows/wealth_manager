@@ -20,6 +20,26 @@ protocol TokenStore: Sendable {
     func deleteAccessToken() throws
 }
 
+// MARK: - StoredTokenProvider
+
+/// A TokenProvider that reads from a TokenStore. Used to bootstrap APIClient
+/// before a full AuthService is available. Refresh is not supported.
+struct StoredTokenProvider: TokenProvider {
+    private let store: TokenStore
+
+    init(store: TokenStore) {
+        self.store = store
+    }
+
+    func currentAccessToken() async -> String? {
+        store.getAccessToken()
+    }
+
+    func refreshAccessToken() async throws -> String {
+        throw APIError.unauthorized
+    }
+}
+
 // MARK: - KeychainTokenStore
 
 /// Production token store backed by the macOS/iOS Keychain.

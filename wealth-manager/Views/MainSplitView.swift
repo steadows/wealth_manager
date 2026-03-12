@@ -69,6 +69,9 @@ struct MainSplitView: View {
     @State private var goalsVM: GoalsViewModel?
     @State private var budgetVM: BudgetViewModel?
     @State private var profileVM: ProfileViewModel?
+    @State private var advisorChatVM: AdvisorChatViewModel?
+    @State private var briefingVM: CFOBriefingViewModel?
+    @State private var alertsVM: AlertsViewModel?
 
     var body: some View {
         NavigationSplitView {
@@ -116,6 +119,20 @@ struct MainSplitView: View {
         profileVM = ProfileViewModel(
             profileRepo: SwiftDataUserProfileRepository(modelContainer: container)
         )
+
+        // Advisory services (AI Advisor + Reports)
+        let backendURL = URL(string: "http://localhost:8000")!
+        let tokenStore = KeychainTokenStore()
+        let bootstrapProvider = StoredTokenProvider(store: tokenStore)
+        let authClient = APIClient(baseURL: backendURL, tokenProvider: bootstrapProvider)
+        let authService = AuthService(apiClient: authClient, tokenStore: tokenStore)
+        let advisoryAPIClient = APIClient(baseURL: backendURL, tokenProvider: authService)
+        let advisorService = AdvisorService(apiClient: advisoryAPIClient, baseURL: backendURL, tokenProvider: authService)
+
+        advisorChatVM = AdvisorChatViewModel(advisoryService: advisorService, modelContext: modelContext)
+        briefingVM = CFOBriefingViewModel(advisoryService: advisorService)
+        alertsVM = AlertsViewModel(advisoryService: advisorService)
+
         isReady = true
     }
 
@@ -246,9 +263,9 @@ struct MainSplitView: View {
         case .goals:
             goalDetail
         case .aiAdvisor:
-            placeholderView(title: "AI Advisor", icon: "bubble.left.and.bubble.right")
+            aiAdvisorDetail
         case .reports:
-            placeholderView(title: "Reports", icon: "doc.text")
+            reportsDetail
         case .planning:
             PlanningView()
         case nil:
@@ -324,6 +341,29 @@ struct MainSplitView: View {
             GoalDetailView(goal: goal)
         } else {
             placeholderView(title: "Select a Goal", icon: "target")
+        }
+    }
+
+    @ViewBuilder
+    private var aiAdvisorDetail: some View {
+        VStack(spacing: 0) {
+            if let chatVM = advisorChatVM {
+                AdvisorChatView(viewModel: chatVM)
+            }
+            if let alertsVM {
+                Divider().overlay(WMColors.glassBorder)
+                AlertsListView(viewModel: alertsVM)
+                    .frame(maxHeight: 240)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var reportsDetail: some View {
+        if let vm = briefingVM {
+            CFOBriefingView(viewModel: vm)
+        } else {
+            placeholderView(title: "Reports", icon: "doc.text")
         }
     }
 

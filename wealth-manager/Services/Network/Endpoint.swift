@@ -33,6 +33,12 @@ enum Endpoint {
     // Sync
     case syncPull(since: Date?)
     case syncPush(ClientChangesDTO)
+
+    // Advisory
+    case advisorChat(message: String, conversationId: UUID?)
+    case getBriefing(period: String)
+    case getHealthScore
+    case getAlerts
 }
 
 // MARK: - Endpoint Properties
@@ -67,15 +73,24 @@ extension Endpoint {
             return "/api/v1/sync"
         case .syncPush:
             return "/api/v1/sync"
+        case .advisorChat:
+            return "/api/v1/advisor/chat"
+        case .getBriefing:
+            return "/api/v1/reports/briefing"
+        case .getHealthScore:
+            return "/api/v1/reports/health-score"
+        case .getAlerts:
+            return "/api/v1/alerts"
         }
     }
 
     var method: HTTPMethod {
         switch self {
         case .login, .refreshToken, .createAccount, .createLinkToken,
-             .exchangeToken, .plaidSync, .syncPush:
+             .exchangeToken, .plaidSync, .syncPush, .advisorChat:
             return .post
-        case .me, .listAccounts, .getAccount, .syncPull:
+        case .me, .listAccounts, .getAccount, .syncPull,
+             .getBriefing, .getHealthScore, .getAlerts:
             return .get
         case .updateAccount:
             return .patch
@@ -103,6 +118,8 @@ extension Endpoint {
                 URLQueryItem(name: "offset", value: "\(offset)"),
                 URLQueryItem(name: "limit", value: "\(limit)"),
             ]
+        case .getBriefing(let period):
+            return [URLQueryItem(name: "period", value: period)]
         default:
             return nil
         }
@@ -127,6 +144,12 @@ extension Endpoint {
             return data
         case .syncPush(let changes):
             return try? encoder.encode(changes)
+        case .advisorChat(let message, let conversationId):
+            var body: [String: Any] = ["message": message]
+            if let cid = conversationId {
+                body["conversation_id"] = cid.uuidString
+            }
+            return try? JSONSerialization.data(withJSONObject: body)
         default:
             return nil
         }
