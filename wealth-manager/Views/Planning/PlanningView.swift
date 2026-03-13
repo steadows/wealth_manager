@@ -1,7 +1,11 @@
 import SwiftUI
 
-/// Placeholder hub view for financial planning modules.
+/// Hub view for financial planning modules.
+/// Pass `onRetirementTapped` to wire up navigation from the Retirement card.
 struct PlanningView: View {
+
+    var onRetirementTapped: (() -> Void)?
+
     private let columns = [
         GridItem(.flexible(), spacing: 16),
         GridItem(.flexible(), spacing: 16),
@@ -42,7 +46,9 @@ struct PlanningView: View {
                 title: "Retirement Planning",
                 metric: "\u{2014}",
                 metricLabel: "Years to retirement",
-                color: WMColors.primary
+                color: WMColors.primary,
+                isEnabled: true,
+                action: { onRetirementTapped?() }
             )
 
             planningCard(
@@ -50,7 +56,8 @@ struct PlanningView: View {
                 title: "Tax Intelligence",
                 metric: "\u{2014}",
                 metricLabel: "Estimated tax liability",
-                color: WMColors.secondary
+                color: WMColors.secondary,
+                isEnabled: false
             )
 
             planningCard(
@@ -58,7 +65,8 @@ struct PlanningView: View {
                 title: "Debt Strategy",
                 metric: "\u{2014}",
                 metricLabel: "Total debt balance",
-                color: WMColors.tertiary
+                color: WMColors.tertiary,
+                isEnabled: false
             )
 
             planningCard(
@@ -66,7 +74,8 @@ struct PlanningView: View {
                 title: "Insurance Analysis",
                 metric: "\u{2014}",
                 metricLabel: "Coverage status",
-                color: WMColors.glow
+                color: WMColors.glow,
+                isEnabled: false
             )
         }
     }
@@ -76,7 +85,9 @@ struct PlanningView: View {
         title: String,
         metric: String,
         metricLabel: String,
-        color: Color
+        color: Color,
+        isEnabled: Bool = false,
+        action: (() -> Void)? = nil
     ) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -102,17 +113,19 @@ struct PlanningView: View {
 
             Spacer()
 
-            Button {} label: {
+            Button {
+                action?()
+            } label: {
                 HStack(spacing: 4) {
                     Text("Explore")
                     Image(systemName: "arrow.right")
                 }
                 .font(WMTypography.caption)
-                .foregroundStyle(WMColors.textMuted)
+                .foregroundStyle(isEnabled ? WMColors.primary : WMColors.textMuted)
             }
             .buttonStyle(.plain)
-            .disabled(true)
-            .help("Coming in Sprint 8")
+            .disabled(!isEnabled)
+            .help(isEnabled ? "" : "Coming soon")
         }
         .padding(20)
         .frame(minHeight: 200)

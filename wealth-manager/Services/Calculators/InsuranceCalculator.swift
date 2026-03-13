@@ -99,4 +99,34 @@ nonisolated struct InsuranceCalculator: Sendable {
         let gap = max(recommended - max(existingCoverage, 0), 0)
         return (recommendedCoverage: recommended, gap: gap)
     }
+
+    // MARK: - Estate Planning Checklist
+
+    /// Build an ordered estate planning checklist with completion status and priorities.
+    ///
+    /// Priority levels: "Critical", "High", "Recommended".
+    /// Items are ordered by decreasing priority.
+    ///
+    /// - Parameters:
+    ///   - hasWill: Whether the user has a valid will.
+    ///   - hasTrust: Whether the user has an established trust.
+    ///   - hasPOA: Whether the user has a power of attorney.
+    ///   - hasHealthcareDirective: Whether the user has a healthcare directive / living will.
+    ///   - hasBeneficiariesUpdated: Whether all account beneficiaries are current.
+    /// - Returns: An ordered array of checklist items with completion status and priority label.
+    static func estatePlanningChecklist(
+        hasWill: Bool,
+        hasTrust: Bool,
+        hasPOA: Bool,
+        hasHealthcareDirective: Bool,
+        hasBeneficiariesUpdated: Bool
+    ) -> [(item: String, isComplete: Bool, priority: String)] {
+        [
+            (item: "Last Will & Testament", isComplete: hasWill, priority: "Critical"),
+            (item: "Beneficiaries Updated", isComplete: hasBeneficiariesUpdated, priority: "Critical"),
+            (item: "Power of Attorney", isComplete: hasPOA, priority: "High"),
+            (item: "Healthcare Directive", isComplete: hasHealthcareDirective, priority: "High"),
+            (item: "Living Trust", isComplete: hasTrust, priority: "Recommended"),
+        ]
+    }
 }

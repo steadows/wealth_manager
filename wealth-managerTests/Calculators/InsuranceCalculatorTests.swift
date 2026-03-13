@@ -155,4 +155,94 @@ struct InsuranceCalculatorTests {
         #expect(result.recommendedCoverage == 0)
         #expect(result.gap == 0)
     }
+
+    // MARK: - Estate Planning Checklist
+
+    @Test("estatePlanningChecklist: all incomplete")
+    func estatePlanningAllIncomplete() {
+        let checklist = InsuranceCalculator.estatePlanningChecklist(
+            hasWill: false,
+            hasTrust: false,
+            hasPOA: false,
+            hasHealthcareDirective: false,
+            hasBeneficiariesUpdated: false
+        )
+        #expect(checklist.count == 5)
+        #expect(checklist.allSatisfy { !$0.isComplete })
+    }
+
+    @Test("estatePlanningChecklist: all complete")
+    func estatePlanningAllComplete() {
+        let checklist = InsuranceCalculator.estatePlanningChecklist(
+            hasWill: true,
+            hasTrust: true,
+            hasPOA: true,
+            hasHealthcareDirective: true,
+            hasBeneficiariesUpdated: true
+        )
+        #expect(checklist.count == 5)
+        #expect(checklist.allSatisfy { $0.isComplete })
+    }
+
+    @Test("estatePlanningChecklist: partial completion reflects correct items")
+    func estatePlanningPartial() {
+        let checklist = InsuranceCalculator.estatePlanningChecklist(
+            hasWill: true,
+            hasTrust: false,
+            hasPOA: true,
+            hasHealthcareDirective: false,
+            hasBeneficiariesUpdated: false
+        )
+        // Will and POA are complete
+        let willItem = checklist.first { $0.item == "Last Will & Testament" }
+        let trustItem = checklist.first { $0.item == "Living Trust" }
+        let poaItem = checklist.first { $0.item == "Power of Attorney" }
+        let healthItem = checklist.first { $0.item == "Healthcare Directive" }
+        let benefItem = checklist.first { $0.item == "Beneficiaries Updated" }
+
+        #expect(willItem?.isComplete == true)
+        #expect(trustItem?.isComplete == false)
+        #expect(poaItem?.isComplete == true)
+        #expect(healthItem?.isComplete == false)
+        #expect(benefItem?.isComplete == false)
+    }
+
+    @Test("estatePlanningChecklist: priorities assigned correctly")
+    func estatePlanningPriorities() {
+        let checklist = InsuranceCalculator.estatePlanningChecklist(
+            hasWill: false,
+            hasTrust: false,
+            hasPOA: false,
+            hasHealthcareDirective: false,
+            hasBeneficiariesUpdated: false
+        )
+        let willItem = checklist.first { $0.item == "Last Will & Testament" }
+        let trustItem = checklist.first { $0.item == "Living Trust" }
+        let poaItem = checklist.first { $0.item == "Power of Attorney" }
+        let healthItem = checklist.first { $0.item == "Healthcare Directive" }
+        let benefItem = checklist.first { $0.item == "Beneficiaries Updated" }
+
+        #expect(willItem?.priority == "Critical")
+        #expect(benefItem?.priority == "Critical")
+        #expect(poaItem?.priority == "High")
+        #expect(healthItem?.priority == "High")
+        #expect(trustItem?.priority == "Recommended")
+    }
+
+    @Test("estatePlanningChecklist: Critical items appear before Recommended")
+    func estatePlanningOrderedByPriority() {
+        let checklist = InsuranceCalculator.estatePlanningChecklist(
+            hasWill: false,
+            hasTrust: false,
+            hasPOA: false,
+            hasHealthcareDirective: false,
+            hasBeneficiariesUpdated: false
+        )
+        let priorities = checklist.map(\.priority)
+        let criticalIndices = priorities.indices.filter { priorities[$0] == "Critical" }
+        let recommendedIndices = priorities.indices.filter { priorities[$0] == "Recommended" }
+        let maxCritical = criticalIndices.max() ?? -1
+        let minRecommended = recommendedIndices.min() ?? Int.max
+        #expect(maxCritical < minRecommended)
+    }
 }

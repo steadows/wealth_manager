@@ -197,4 +197,132 @@ struct TaxCalculatorTests {
         )
         #expect(tax == expectedIncomeTax)
     }
+
+    // MARK: - iraContributionLimit
+
+    @Test("iraContributionLimit: age 40 returns $7,000 base limit")
+    func iraContributionLimitAge40() {
+        let limit = TaxCalculator.iraContributionLimit(age: 40, year: 2025)
+        #expect(limit == 7_000)
+    }
+
+    @Test("iraContributionLimit: age 55 returns $8,000 with catch-up")
+    func iraContributionLimitAge55() {
+        let limit = TaxCalculator.iraContributionLimit(age: 55, year: 2025)
+        #expect(limit == 8_000)
+    }
+
+    @Test("iraContributionLimit: age 50 exactly returns $8,000 catch-up threshold")
+    func iraContributionLimitAge50() {
+        let limit = TaxCalculator.iraContributionLimit(age: 50, year: 2025)
+        #expect(limit == 8_000)
+    }
+
+    @Test("iraContributionLimit: age 49 returns $7,000 no catch-up")
+    func iraContributionLimitAge49() {
+        let limit = TaxCalculator.iraContributionLimit(age: 49, year: 2025)
+        #expect(limit == 7_000)
+    }
+
+    // MARK: - backdoorRothEligible
+
+    @Test("backdoorRothEligible: single $200K income returns true (backdoor needed)")
+    func backdoorRothEligibleSingleHighIncome() {
+        let eligible = TaxCalculator.backdoorRothEligible(
+            modifiedAGI: 200_000,
+            filingStatus: .single
+        )
+        #expect(eligible == true)
+    }
+
+    @Test("backdoorRothEligible: single $100K income returns false (direct contribution ok)")
+    func backdoorRothEligibleSingleLowIncome() {
+        let eligible = TaxCalculator.backdoorRothEligible(
+            modifiedAGI: 100_000,
+            filingStatus: .single
+        )
+        #expect(eligible == false)
+    }
+
+    @Test("backdoorRothEligible: married joint $250K returns true (above $246K phase-out)")
+    func backdoorRothEligibleMFJHighIncome() {
+        let eligible = TaxCalculator.backdoorRothEligible(
+            modifiedAGI: 250_000,
+            filingStatus: .marriedJoint
+        )
+        #expect(eligible == true)
+    }
+
+    @Test("backdoorRothEligible: married joint $200K returns false (below $236K phase-out start)")
+    func backdoorRothEligibleMFJLowIncome() {
+        let eligible = TaxCalculator.backdoorRothEligible(
+            modifiedAGI: 200_000,
+            filingStatus: .marriedJoint
+        )
+        #expect(eligible == false)
+    }
+
+    // MARK: - rothConversionOpportunity
+
+    @Test("rothConversionOpportunity: low bracket taxpayer has conversion room")
+    func rothConversionOpportunityLowBracket() {
+        // $40K income is in the 12% bracket (up to $48,475 for single)
+        // Room = $48,475 - $40,000 = $8,475
+        let result = TaxCalculator.rothConversionOpportunity(
+            currentTaxableIncome: 40_000,
+            filingStatus: .single,
+            traditionalIRABalance: 50_000
+        )
+        #expect(result.suggestedConversionAmount > 0)
+        #expect(result.marginalRate == Decimal(string: "0.12")!)
+    }
+
+    @Test("rothConversionOpportunity: high bracket taxpayer returns 0 conversion")
+    func rothConversionOpportunityHighBracket() {
+        // $120K income is in the 22% bracket for single
+        let result = TaxCalculator.rothConversionOpportunity(
+            currentTaxableIncome: 120_000,
+            filingStatus: .single,
+            traditionalIRABalance: 100_000
+        )
+        #expect(result.suggestedConversionAmount == 0)
+        #expect(!result.reason.isEmpty)
+    }
+
+    @Test("rothConversionOpportunity: conversion capped at IRA balance")
+    func rothConversionOpportunityCapAtBalance() {
+        // $10K income in 10% bracket (room up to $11,925), but IRA balance only $500
+        let result = TaxCalculator.rothConversionOpportunity(
+            currentTaxableIncome: 10_000,
+            filingStatus: .single,
+            traditionalIRABalance: 500
+        )
+        #expect(result.suggestedConversionAmount <= 500)
+    }
+
+    // MARK: - standardDeduction
+
+    @Test("standardDeduction: single filer 2025 is $15,000")
+    func standardDeductionSingle() {
+        let deduction = TaxCalculator.standardDeduction(filingStatus: .single, year: 2025)
+        #expect(deduction == 15_000)
+    }
+
+    @Test("standardDeduction: married filing jointly 2025 is $30,000")
+    func standardDeductionMFJ() {
+        let deduction = TaxCalculator.standardDeduction(filingStatus: .marriedJoint, year: 2025)
+        #expect(deduction == 30_000)
+    }
+
+    @Test("standardDeduction: married filing separately 2025 is $15,000")
+    func standardDeductionMFS() {
+        let deduction = TaxCalculator.standardDeduction(filingStatus: .marriedSeparate, year: 2025)
+        #expect(deduction == 15_000)
+    }
+
+    @Test("standardDeduction: head of household 2025 is $22,500")
+    func standardDeductionHOH() {
+        let deduction = TaxCalculator.standardDeduction(filingStatus: .headOfHousehold, year: 2025)
+        #expect(deduction == 22_500)
+    }
 }

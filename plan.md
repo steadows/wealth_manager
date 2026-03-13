@@ -252,7 +252,7 @@ Lane A (Chat UI)                    Lane B (Reports + Alerts)
 **Tests:** 18 new tests, all passing (6 chat ViewModel, 5 alerts, 6 briefing + 1 persistence)
 **Sprint end:** `/verify` + `/code-review` + `git commit`
 
-### [ ] Sprint 8: Advanced Financial Tools (2 weeks)
+### [x] Sprint 8: Advanced Financial Tools (2 weeks)
 ```
 Lane A (Retirement+FIRE)            Lane B (Tax Intelligence)         Lane C (Debt + Insurance)
 ────────────────────────            ─────────────────────            ──────────────────────

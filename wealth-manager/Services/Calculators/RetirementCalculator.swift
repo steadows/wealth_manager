@@ -245,6 +245,121 @@ nonisolated struct RetirementCalculator: Sendable {
         return min(max(score, 0), 100)
     }
 
+    // MARK: - Contribution Limits
+
+    /// Returns IRS contribution limits for the given age and year.
+    ///
+    /// - Parameters:
+    ///   - age: The contributor's age.
+    ///   - year: The tax year (currently only 2025 limits are defined).
+    /// - Returns: Tuple of traditional 401k, catch-up 401k, IRA, and IRA catch-up limits.
+    static func contributionLimits(
+        age: Int,
+        year: Int
+    ) -> (traditional401k: Decimal, catchUp401k: Decimal, ira: Decimal, catchUpIra: Decimal) {
+        // 2025 IRS limits
+        let base401k: Decimal = 23_500
+        let catchUp401k: Decimal = age >= 50 ? 7_500 : 0
+        let baseIra: Decimal = 7_000
+        let catchUpIra: Decimal = age >= 50 ? 1_000 : 0
+        return (traditional401k: base401k, catchUp401k: catchUp401k, ira: baseIra, catchUpIra: catchUpIra)
+    }
+
+    // MARK: - Required Minimum Distributions
+
+    /// Computes the Required Minimum Distribution (RMD) for a given account balance and age.
+    ///
+    /// Uses IRS Uniform Lifetime Table divisors. Returns 0 for ages below 73.
+    /// Extrapolates linearly for ages above 80 (divisor decreases ~0.9/year).
+    ///
+    /// - Parameters:
+    ///   - accountBalance: The total balance in the retirement account.
+    ///   - age: The account owner's age.
+    /// - Returns: The required minimum distribution amount, or 0 if not yet required.
+    static func requiredMinimumDistribution(
+        accountBalance: Decimal,
+        age: Int
+    ) -> Decimal {
+        guard age >= 73 else { return 0 }
+        guard accountBalance > 0 else { return 0 }
+
+        let divisor = rmdDivisor(for: age)
+        guard divisor > 0 else { return 0 }
+        return accountBalance / Decimal(divisor)
+    }
+
+    // MARK: - Social Security Estimate
+
+    /// Estimates a Social Security monthly benefit based on claiming age relative to FRA (67).
+    ///
+    /// - Parameters:
+    ///   - fullRetirementBenefit: The benefit amount if claimed at FRA (age 67).
+    ///   - claimingAge: The age at which benefits will be claimed (clamped to 62–70).
+    /// - Returns: Adjusted monthly benefit as a `Decimal`.
+    static func socialSecurityEstimate(
+        fullRetirementBenefit: Decimal,
+        claimingAge: Int
+    ) -> Decimal {
+        let effectiveAge = max(claimingAge, 62)
+        let fra = 67
+
+        if effectiveAge == fra {
+            return fullRetirementBenefit
+        }
+
+        if effectiveAge > fra {
+            // Delayed credits: +8%/year for each year beyond FRA (max age 70)
+            let yearsDelayed = min(effectiveAge - fra, 3)
+            let multiplier = Decimal(1) + Decimal(yearsDelayed) * Decimal(string: "0.08")!
+            return fullRetirementBenefit * multiplier
+        }
+
+        // Early claiming: reduces benefit
+        // Age 62 = 70% of FRA benefit
+        // Reduction: -6.67%/yr for years before 65, -5%/yr for years 65-67
+        let yearsEarly = fra - effectiveAge
+        var reductionRate = Decimal(0)
+
+        if effectiveAge < 65 {
+            let yearsBefore65 = 65 - effectiveAge
+            let yearsFrom65ToFRA = fra - 65  // always 2
+            reductionRate = Decimal(yearsBefore65) * Decimal(string: "0.0667")!
+                          + Decimal(yearsFrom65ToFRA) * Decimal(string: "0.05")!
+        } else {
+            // Between 65 and 67
+            reductionRate = Decimal(yearsEarly) * Decimal(string: "0.05")!
+        }
+
+        let multiplier = Decimal(1) - reductionRate
+        return fullRetirementBenefit * multiplier
+    }
+
+    // MARK: - Private RMD Helpers
+
+    /// Returns the IRS Uniform Lifetime Table divisor for a given age.
+    /// Ages 73–80 use tabulated values; ages above 80 use linear extrapolation.
+    private static func rmdDivisor(for age: Int) -> Double {
+        let table: [Int: Double] = [
+            73: 26.5,
+            74: 25.5,
+            75: 24.6,
+            76: 23.7,
+            77: 22.9,
+            78: 22.0,
+            79: 21.1,
+            80: 20.2,
+        ]
+
+        if let divisor = table[age] {
+            return divisor
+        }
+
+        // Linear extrapolation for ages above 80 (~0.9/year decrease)
+        let yearsAbove80 = age - 80
+        let extrapolated = 20.2 - Double(yearsAbove80) * 0.9
+        return max(extrapolated, 1.0)
+    }
+
     // MARK: - Private Helpers
 
     private static func projectedValue(

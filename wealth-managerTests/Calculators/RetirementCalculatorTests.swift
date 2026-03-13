@@ -198,4 +198,115 @@ struct RetirementCalculatorTests {
         // net expenses = 0, target = 0, guard target > 0 returns 100
         #expect(score == 100)
     }
+
+    // MARK: - contributionLimits
+
+    @Test("contributionLimits: age 45 — no catch-up")
+    func contributionLimitsUnder50() {
+        let limits = RetirementCalculator.contributionLimits(age: 45, year: 2025)
+        #expect(limits.traditional401k == 23_500)
+        #expect(limits.catchUp401k == 0)
+        #expect(limits.ira == 7_000)
+        #expect(limits.catchUpIra == 0)
+    }
+
+    @Test("contributionLimits: age 55 — catch-up eligible")
+    func contributionLimitsAge55() {
+        let limits = RetirementCalculator.contributionLimits(age: 55, year: 2025)
+        #expect(limits.traditional401k == 23_500)
+        #expect(limits.catchUp401k == 7_500)
+        #expect(limits.ira == 7_000)
+        #expect(limits.catchUpIra == 1_000)
+    }
+
+    @Test("contributionLimits: age 73 — still eligible with catch-up")
+    func contributionLimitsAge73() {
+        let limits = RetirementCalculator.contributionLimits(age: 73, year: 2025)
+        #expect(limits.traditional401k == 23_500)
+        #expect(limits.catchUp401k == 7_500)
+        #expect(limits.ira == 7_000)
+        #expect(limits.catchUpIra == 1_000)
+    }
+
+    // MARK: - requiredMinimumDistribution
+
+    @Test("requiredMinimumDistribution: age 70 returns 0 (not required yet)")
+    func rmdAge70ReturnsZero() {
+        let rmd = RetirementCalculator.requiredMinimumDistribution(
+            accountBalance: 500_000,
+            age: 70
+        )
+        #expect(rmd == 0)
+    }
+
+    @Test("requiredMinimumDistribution: age 73 with $500k balance")
+    func rmdAge73() {
+        let rmd = RetirementCalculator.requiredMinimumDistribution(
+            accountBalance: 500_000,
+            age: 73
+        )
+        // $500,000 / 26.5 ≈ $18,867.92
+        let rmdDouble = NSDecimalNumber(decimal: rmd).doubleValue
+        #expect(rmdDouble > 18_000)
+        #expect(rmdDouble < 20_000)
+    }
+
+    @Test("requiredMinimumDistribution: age 80")
+    func rmdAge80() {
+        let rmd = RetirementCalculator.requiredMinimumDistribution(
+            accountBalance: 500_000,
+            age: 80
+        )
+        // $500,000 / 20.2 ≈ $24,752
+        let rmdDouble = NSDecimalNumber(decimal: rmd).doubleValue
+        #expect(rmdDouble > 24_000)
+        #expect(rmdDouble < 26_000)
+    }
+
+    // MARK: - socialSecurityEstimate
+
+    @Test("socialSecurityEstimate: claim at 62 = ~70% of FRA benefit")
+    func ssEstimateAge62() {
+        let benefit = RetirementCalculator.socialSecurityEstimate(
+            fullRetirementBenefit: 2_000,
+            claimingAge: 62
+        )
+        let benefitDouble = NSDecimalNumber(decimal: benefit).doubleValue
+        // Should be approximately 70% = $1,400
+        #expect(benefitDouble >= 1_350)
+        #expect(benefitDouble <= 1_450)
+    }
+
+    @Test("socialSecurityEstimate: claim at 67 = 100% of FRA benefit")
+    func ssEstimateAge67() {
+        let benefit = RetirementCalculator.socialSecurityEstimate(
+            fullRetirementBenefit: 2_000,
+            claimingAge: 67
+        )
+        #expect(benefit == 2_000)
+    }
+
+    @Test("socialSecurityEstimate: claim at 70 = 124% of FRA benefit")
+    func ssEstimateAge70() {
+        let benefit = RetirementCalculator.socialSecurityEstimate(
+            fullRetirementBenefit: 2_000,
+            claimingAge: 70
+        )
+        // +8%/year × 3 years = +24% → $2,480
+        #expect(benefit == Decimal(string: "2480")!)
+    }
+
+    @Test("socialSecurityEstimate: claimingAge below 62 is clamped to 62")
+    func ssEstimateAgeBelowMinimum() {
+        let benefit62 = RetirementCalculator.socialSecurityEstimate(
+            fullRetirementBenefit: 2_000,
+            claimingAge: 62
+        )
+        let benefitBelow = RetirementCalculator.socialSecurityEstimate(
+            fullRetirementBenefit: 2_000,
+            claimingAge: 55
+        )
+        // Both should be equal — clamped to age 62 behavior
+        #expect(benefitBelow == benefit62)
+    }
 }
