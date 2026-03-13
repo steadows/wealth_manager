@@ -14,8 +14,17 @@ from plaid.model.item_public_token_exchange_request import (
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
 from plaid.model.products import Products
+from plaid.model.sandbox_item_fire_webhook_request import (
+    SandboxItemFireWebhookRequest,
+)
+from plaid.model.sandbox_item_reset_login_request import (
+    SandboxItemResetLoginRequest,
+)
 from plaid.model.sandbox_public_token_create_request import (
     SandboxPublicTokenCreateRequest,
+)
+from plaid.model.sandbox_public_token_create_request_options import (
+    SandboxPublicTokenCreateRequestOptions,
 )
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 
@@ -120,6 +129,7 @@ class PlaidService:
         self,
         institution_id: str = "ins_109508",
         initial_products: list[str] | None = None,
+        webhook: str | None = None,
     ) -> str:
         """Create a sandbox public token without going through Link.
 
@@ -130,17 +140,62 @@ class PlaidService:
             institution_id: Sandbox institution ID. Defaults to
                 "ins_109508" (First Platypus Bank — all products).
             initial_products: Products to enable. Defaults to ["transactions"].
+            webhook: Optional webhook URL to register on the sandbox item.
+                Required if you plan to call fire_sandbox_webhook later.
 
         Returns:
             A public_token string ready for exchange.
         """
         products = [Products(p) for p in (initial_products or ["transactions"])]
-        request = SandboxPublicTokenCreateRequest(
-            institution_id=institution_id,
-            initial_products=products,
-        )
+        kwargs: dict = {
+            "institution_id": institution_id,
+            "initial_products": products,
+        }
+        if webhook:
+            kwargs["options"] = SandboxPublicTokenCreateRequestOptions(
+                webhook=webhook,
+            )
+        request = SandboxPublicTokenCreateRequest(**kwargs)
         response = self._client.sandbox_public_token_create(request)
         return response.public_token
+
+    def fire_sandbox_webhook(
+        self,
+        access_token: str,
+        webhook_code: str = "SYNC_UPDATES_AVAILABLE",
+    ) -> dict:
+        """Fire a sandbox webhook for testing. Only works in sandbox.
+
+        Args:
+            access_token: The Plaid access token for the item.
+            webhook_code: The webhook code to fire. Defaults to
+                "SYNC_UPDATES_AVAILABLE".
+
+        Returns:
+            Dict with webhook_fired status from the Plaid API response.
+        """
+        request = SandboxItemFireWebhookRequest(
+            access_token=access_token,
+            webhook_code=webhook_code,
+        )
+        response = self._client.sandbox_item_fire_webhook(request)
+        return {"webhook_fired": response.webhook_fired}
+
+    def reset_sandbox_login(self, access_token: str) -> dict:
+        """Reset a sandbox item's login credentials. Only works in sandbox.
+
+        Forces the item into an ITEM_LOGIN_REQUIRED error state,
+        useful for testing the re-authentication flow.
+
+        Args:
+            access_token: The Plaid access token for the item.
+
+        Returns:
+            Dict with reset_login status (True on success).
+        """
+        request = SandboxItemResetLoginRequest(access_token=access_token)
+        response = self._client.sandbox_item_reset_login(request)
+        return {"reset_login": response.reset_login}
 
     def get_accounts(self, access_token: str) -> list[dict]:
         """Fetch account balances from Plaid.

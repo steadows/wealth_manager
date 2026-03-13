@@ -42,3 +42,28 @@ class SandboxPublicTokenResponse(BaseModel):
     """Response containing a sandbox public token."""
 
     public_token: str
+
+
+class SandboxFireWebhookRequest(BaseModel):
+    """Request to fire a sandbox webhook."""
+
+    access_token: str
+    webhook_code: str = "SYNC_UPDATES_AVAILABLE"
+
+
+class SandboxFireWebhookResponse(BaseModel):
+    """Response after firing a sandbox webhook."""
+
+    webhook_fired: bool
+
+
+class SandboxResetLoginRequest(BaseModel):
+    """Request to reset a sandbox item's login credentials."""
+
+    access_token: str
+
+
+class SandboxResetLoginResponse(BaseModel):
+    """Response after resetting sandbox login."""
+
+    reset_login: bool

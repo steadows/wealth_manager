@@ -18,8 +18,12 @@ from app.schemas.plaid import (
     PlaidExchangeRequest,
     PlaidExchangeResponse,
     PlaidLinkResponse,
+    SandboxFireWebhookRequest,
+    SandboxFireWebhookResponse,
     SandboxPublicTokenRequest,
     SandboxPublicTokenResponse,
+    SandboxResetLoginRequest,
+    SandboxResetLoginResponse,
 )
 from app.services.plaid_service import PlaidService, get_plaid_service
 
@@ -188,3 +192,54 @@ async def create_sandbox_public_token(
         initial_products=body.initial_products,
     )
     return SandboxPublicTokenResponse(public_token=public_token)
+
+
+@router.post(
+    "/sandbox/fire-webhook",
+    response_model=SandboxFireWebhookResponse,
+)
+async def fire_sandbox_webhook(
+    body: SandboxFireWebhookRequest,
+    plaid: PlaidService = Depends(get_plaid_service),
+) -> SandboxFireWebhookResponse:
+    """Fire a Plaid sandbox webhook (sandbox only).
+
+    Triggers a webhook event for the given item, useful for
+    integration testing webhook handling flows.
+    """
+    settings = get_settings()
+    if settings.plaid_env != "sandbox":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This endpoint is only available in the sandbox environment",
+        )
+
+    result = plaid.fire_sandbox_webhook(
+        access_token=body.access_token,
+        webhook_code=body.webhook_code,
+    )
+    return SandboxFireWebhookResponse(webhook_fired=result["webhook_fired"])
+
+
+@router.post(
+    "/sandbox/reset-login",
+    response_model=SandboxResetLoginResponse,
+)
+async def reset_sandbox_login(
+    body: SandboxResetLoginRequest,
+    plaid: PlaidService = Depends(get_plaid_service),
+) -> SandboxResetLoginResponse:
+    """Reset a sandbox item's login credentials (sandbox only).
+
+    Forces the item into ITEM_LOGIN_REQUIRED state for testing
+    the re-authentication flow.
+    """
+    settings = get_settings()
+    if settings.plaid_env != "sandbox":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This endpoint is only available in the sandbox environment",
+        )
+
+    result = plaid.reset_sandbox_login(access_token=body.access_token)
+    return SandboxResetLoginResponse(reset_login=result["reset_login"])

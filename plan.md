@@ -268,6 +268,24 @@ Lane A (Retirement+FIRE)            Lane B (Tax Intelligence)         Lane C (De
 **Gate:** `5.19 Calculator tests` + `5.20 Integration tests` — all tools correct + AI explanations work
 **Sprint end:** `/verify` + `/code-review` + `git commit`
 
+### [ ] Pre-9 Checkpoint: Plaid Sandbox Integration (2–3 days)
+```
+Lane A (E2E Plaid Flow)              Lane B (Webhook + Edge Cases)      Lane C (Claude API Verify)
+──────────────────────              ─────────────────────────          ──────────────────────
+P.1 Link token → sandbox Link →    P.5 Wire /sandbox/item/             P.9 Add CLAUDE_API_KEY to env
+    exchange → accounts persisted       fire_webhook endpoint           P.10 Smoke test: advisory chat
+P.2 Transaction sync round-trip:   P.6 Test SYNC_UPDATES_AVAILABLE         generates response
+    initial sync, cursor paging,       webhook triggers sync            P.11 Smoke test: structured
+    added/modified/removed counts  P.7 Test ITEM_LOGIN_REQUIRED            generate (report service)
+P.3 Account balance refresh:           via /sandbox/item/reset_login    P.12 Smoke test: streaming
+    verify Decimal precision,      P.8 Error handling: expired              advisory SSE works end-to-end
+    type/subtype mapping correct       token, invalid credentials,
+P.4 Multi-institution: link 2+        rate limit, network timeout
+    sandbox banks, verify isolation
+```
+**Gate:** All Plaid flows work against live sandbox (not mocks). Claude API returns real responses. No regressions in existing 212+ tests.
+**Checkpoint end:** `/verify` + `/code-review` + `git commit`
+
 ### [ ] Sprint 9: Polish + iOS Port (2 weeks)
 ```
 Lane A (macOS Polish)               Lane B (iOS Port)                 Lane C (Security + Launch)
