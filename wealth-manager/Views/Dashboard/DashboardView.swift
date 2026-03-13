@@ -144,37 +144,74 @@ struct DashboardView: View {
     }
 
     private var transactionsTable: some View {
-        Table(viewModel.recentTransactions) {
-            TableColumn("Date") { transaction in
-                Text(transaction.date, style: .date)
-                    .font(WMTypography.caption)
-                    .foregroundStyle(WMColors.textPrimary)
-            }
-            .width(min: 80, ideal: 100)
+        Group {
+            #if os(macOS)
+            Table(viewModel.recentTransactions) {
+                TableColumn("Date") { transaction in
+                    Text(transaction.date, style: .date)
+                        .font(WMTypography.caption)
+                        .foregroundStyle(WMColors.textPrimary)
+                }
+                .width(min: 80, ideal: 100)
 
-            TableColumn("Merchant") { transaction in
+                TableColumn("Merchant") { transaction in
+                    Text(transaction.merchantName ?? "Unknown")
+                        .font(WMTypography.body)
+                        .foregroundStyle(WMColors.textPrimary)
+                }
+                .width(min: 100, ideal: 160)
+
+                TableColumn("Category") { transaction in
+                    GlassPill(text: transaction.category.displayName)
+                }
+                .width(min: 90, ideal: 120)
+
+                TableColumn("Amount") { transaction in
+                    CurrencyText(
+                        amount: transaction.amount,
+                        showSign: true,
+                        font: WMTypography.body
+                    )
+                }
+                .width(min: 80, ideal: 100)
+            }
+            #else
+            LazyVStack(spacing: 8) {
+                ForEach(viewModel.recentTransactions, id: \.id) { transaction in
+                    transactionRow(transaction)
+                }
+            }
+            #endif
+        }
+        .frame(minHeight: 200)
+    }
+
+    #if os(iOS)
+    private func transactionRow(_ transaction: Transaction) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(transaction.merchantName ?? "Unknown")
                     .font(WMTypography.body)
                     .foregroundStyle(WMColors.textPrimary)
+                Text(transaction.date, style: .date)
+                    .font(WMTypography.caption)
+                    .foregroundStyle(WMColors.textMuted)
             }
-            .width(min: 100, ideal: 160)
 
-            TableColumn("Category") { transaction in
-                GlassPill(text: transaction.category.displayName)
-            }
-            .width(min: 90, ideal: 120)
+            Spacer()
 
-            TableColumn("Amount") { transaction in
+            VStack(alignment: .trailing, spacing: 4) {
                 CurrencyText(
                     amount: transaction.amount,
                     showSign: true,
                     font: WMTypography.body
                 )
+                GlassPill(text: transaction.category.displayName)
             }
-            .width(min: 80, ideal: 100)
         }
-        .frame(minHeight: 200)
+        .padding(.vertical, 4)
     }
+    #endif
 
     // MARK: - Active Goals
 

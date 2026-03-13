@@ -1,3 +1,4 @@
+#if os(macOS)
 import SwiftUI
 import WebKit
 
@@ -173,3 +174,4 @@ struct PlaidLinkWebView: NSViewRepresentable {
         }
     }
 }
+#endif

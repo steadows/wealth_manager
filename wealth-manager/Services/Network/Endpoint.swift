@@ -39,6 +39,7 @@ enum Endpoint {
     case getBriefing(period: String)
     case getHealthScore
     case getAlerts
+    case annualReview(year: Int)
 }
 
 // MARK: - Endpoint Properties
@@ -81,6 +82,8 @@ extension Endpoint {
             return "/api/v1/reports/health-score"
         case .getAlerts:
             return "/api/v1/alerts"
+        case .annualReview:
+            return "/api/v1/advisory/annual-review"
         }
     }
 
@@ -90,7 +93,7 @@ extension Endpoint {
              .exchangeToken, .plaidSync, .syncPush, .advisorChat:
             return .post
         case .me, .listAccounts, .getAccount, .syncPull,
-             .getBriefing, .getHealthScore, .getAlerts:
+             .getBriefing, .getHealthScore, .getAlerts, .annualReview:
             return .get
         case .updateAccount:
             return .patch
@@ -120,6 +123,8 @@ extension Endpoint {
             ]
         case .getBriefing(let period):
             return [URLQueryItem(name: "period", value: period)]
+        case .annualReview(let year):
+            return [URLQueryItem(name: "year", value: "\(year)")]
         default:
             return nil
         }

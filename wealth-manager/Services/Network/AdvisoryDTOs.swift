@@ -103,6 +103,60 @@ struct HealthScoreResponseDTO: Codable {
     }
 }
 
+// MARK: - Annual Review DTOs
+
+/// Spending breakdown by category for the annual review.
+struct CategorySummary: Codable, Sendable {
+    let name: String
+    let amount: Decimal
+}
+
+/// Progress toward a financial goal in the annual review.
+struct GoalProgressSummary: Codable, Sendable {
+    let name: String
+    let progressPercent: Decimal
+    let onTrack: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case progressPercent = "progress_percent"
+        case onTrack = "on_track"
+    }
+}
+
+/// Full year-end annual review report from the backend.
+struct AnnualReviewDTO: Codable, Sendable {
+    let year: Int
+    let netWorthChange: Decimal
+    let startingNetWorth: Decimal
+    let endingNetWorth: Decimal
+    let totalIncome: Decimal
+    let totalSpending: Decimal
+    let savingsRate: Decimal
+    let topCategories: [CategorySummary]
+    let goalProgress: [GoalProgressSummary]
+    let investmentReturn: Decimal
+    let taxSummary: String
+    let actionItems: [String]
+    let narrative: String
+
+    enum CodingKeys: String, CodingKey {
+        case year
+        case netWorthChange = "net_worth_change"
+        case startingNetWorth = "starting_net_worth"
+        case endingNetWorth = "ending_net_worth"
+        case totalIncome = "total_income"
+        case totalSpending = "total_spending"
+        case savingsRate = "savings_rate"
+        case topCategories = "top_categories"
+        case goalProgress = "goal_progress"
+        case investmentReturn = "investment_return"
+        case taxSummary = "tax_summary"
+        case actionItems = "action_items"
+        case narrative
+    }
+}
+
 // MARK: - Advisory Service Protocol
 
 /// Abstraction over all AI advisory network calls.
@@ -118,4 +172,7 @@ protocol AdvisoryServiceProtocol: Sendable {
 
     /// Fetches proactive financial alerts.
     func fetchAlerts() async throws -> [ProactiveAlertDTO]
+
+    /// Fetches the annual review report for the given year.
+    func fetchAnnualReview(year: Int) async throws -> AnnualReviewDTO
 }

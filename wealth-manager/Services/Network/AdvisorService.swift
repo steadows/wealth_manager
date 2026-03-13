@@ -76,6 +76,10 @@ final class AdvisorService: AdvisoryServiceProtocol {
         try await apiClient.request(.getAlerts)
     }
 
+    func fetchAnnualReview(year: Int) async throws -> AnnualReviewDTO {
+        try await apiClient.request(.annualReview(year: year))
+    }
+
     // MARK: - Private
 
     private func makeChatRequest(message: String, conversationId: UUID?) async throws -> URLRequest {

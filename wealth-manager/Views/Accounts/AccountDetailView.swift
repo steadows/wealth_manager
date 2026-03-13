@@ -188,40 +188,69 @@ struct AccountDetailView: View {
     }
 
     private var transactionTableContent: some View {
-        Table(sortedTransactions, sortOrder: $sortOrder) {
-            TableColumn("Date", value: \.date) { txn in
-                Text(txn.date, format: .dateTime.month(.abbreviated).day())
-                    .foregroundStyle(WMColors.textPrimary)
-            }
-            .width(min: 70, ideal: 90)
+        Group {
+            #if os(macOS)
+            Table(sortedTransactions, sortOrder: $sortOrder) {
+                TableColumn("Date", value: \.date) { txn in
+                    Text(txn.date, format: .dateTime.month(.abbreviated).day())
+                        .foregroundStyle(WMColors.textPrimary)
+                }
+                .width(min: 70, ideal: 90)
 
-            TableColumn("Merchant") { txn in
-                Text(txn.merchantDisplayName)
-                    .foregroundStyle(WMColors.textPrimary)
-                    .lineLimit(1)
-            }
-            .width(min: 120, ideal: 180)
+                TableColumn("Merchant") { txn in
+                    Text(txn.merchantDisplayName)
+                        .foregroundStyle(WMColors.textPrimary)
+                        .lineLimit(1)
+                }
+                .width(min: 120, ideal: 180)
 
-            TableColumn("Category") { txn in
-                Text(txn.category.displayName)
-                    .font(.caption)
-                    .foregroundStyle(WMColors.primary)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(WMColors.primary.opacity(0.12))
-                    .clipShape(Capsule())
-            }
-            .width(min: 100, ideal: 130)
+                TableColumn("Category") { txn in
+                    Text(txn.category.displayName)
+                        .font(.caption)
+                        .foregroundStyle(WMColors.primary)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(WMColors.primary.opacity(0.12))
+                        .clipShape(Capsule())
+                }
+                .width(min: 100, ideal: 130)
 
-            TableColumn("Amount") { txn in
-                Text(formattedCurrency(txn.amount))
-                    .foregroundStyle(txn.amount >= 0 ? WMColors.positive : WMColors.negative)
-                    .monospacedDigit()
-                    .frame(maxWidth: .infinity, alignment: .trailing)
+                TableColumn("Amount") { txn in
+                    Text(formattedCurrency(txn.amount))
+                        .foregroundStyle(txn.amount >= 0 ? WMColors.positive : WMColors.negative)
+                        .monospacedDigit()
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+                .width(min: 80, ideal: 110)
             }
-            .width(min: 80, ideal: 110)
+            .tableStyle(.inset(alternatesRowBackgrounds: true))
+            #else
+            List(sortedTransactions, id: \.id) { txn in
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(txn.merchantDisplayName)
+                            .foregroundStyle(WMColors.textPrimary)
+                            .lineLimit(1)
+                        Text(txn.date, format: .dateTime.month(.abbreviated).day())
+                            .font(.caption)
+                            .foregroundStyle(WMColors.textMuted)
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text(formattedCurrency(txn.amount))
+                            .foregroundStyle(txn.amount >= 0 ? WMColors.positive : WMColors.negative)
+                            .monospacedDigit()
+                        Text(txn.category.displayName)
+                            .font(.caption)
+                            .foregroundStyle(WMColors.primary)
+                    }
+                }
+            }
+            .listStyle(.plain)
+            #endif
         }
-        .tableStyle(.inset(alternatesRowBackgrounds: true))
     }
 
     /// Transactions sorted according to the current table sort order.

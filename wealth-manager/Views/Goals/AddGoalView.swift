@@ -46,7 +46,9 @@ struct AddGoalView: View {
             Divider().overlay(WMColors.glassBorder)
             footer
         }
+        #if os(macOS)
         .frame(width: 480, height: 560)
+        #endif
         .background(WMColors.backgroundStart)
     }
 
@@ -158,7 +160,9 @@ struct AddGoalView: View {
                     displayedComponents: .date
                 )
                 .labelsHidden()
+                #if os(macOS)
                 .datePickerStyle(.field)
+                #endif
             }
         }
         .padding(12)

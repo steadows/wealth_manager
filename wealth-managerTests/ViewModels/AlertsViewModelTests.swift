@@ -11,7 +11,11 @@ final class MockAdvisoryService: AdvisoryServiceProtocol, @unchecked Sendable {
     var stubbedBriefing: CFOBriefingDTO?
     var stubbedHealthScore: HealthScoreResponseDTO?
     var stubbedChatChunks: [String] = []
+    var stubbedAnnualReview: AnnualReviewDTO?
     var shouldThrow: Error?
+
+    // Captured call arguments for verification
+    var capturedAnnualReviewYear: Int?
 
     func streamChat(message: String, conversationId: UUID?) -> AsyncThrowingStream<String, Error> {
         let chunks = stubbedChatChunks
@@ -41,6 +45,12 @@ final class MockAdvisoryService: AdvisoryServiceProtocol, @unchecked Sendable {
     func fetchAlerts() async throws -> [ProactiveAlertDTO] {
         if let error = shouldThrow { throw error }
         return stubbedAlerts
+    }
+
+    func fetchAnnualReview(year: Int) async throws -> AnnualReviewDTO {
+        capturedAnnualReviewYear = year
+        if let error = shouldThrow { throw error }
+        return stubbedAnnualReview!
     }
 }
 

@@ -67,7 +67,9 @@ struct AddAccountView: View {
                 plaidLinkContent
             }
         }
+        #if os(macOS)
         .frame(width: 480, height: step == .choose ? 340 : 460)
+        #endif
         .background(WMColors.backgroundStart)
     }
 
@@ -248,6 +250,7 @@ struct AddAccountView: View {
                     ProgressView("Connecting to Plaid...")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if vm.state == .linkReady, let url = vm.currentLinkURL {
+                    #if os(macOS)
                     PlaidLinkWebView(
                         url: url,
                         onSuccess: { publicToken, _ in
@@ -261,6 +264,12 @@ struct AddAccountView: View {
                             step = .choose
                         }
                     )
+                    #else
+                    Text("Plaid Link is not yet available on iOS.")
+                        .font(WMTypography.body)
+                        .foregroundStyle(WMColors.textMuted)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    #endif
                 } else if vm.state == .linked {
                     plaidSuccessView(accounts: vm.linkedAccounts)
                 } else if let error = vm.error {

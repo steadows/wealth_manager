@@ -1,4 +1,9 @@
 import SwiftUI
+#if canImport(AppKit)
+import AppKit
+#elseif canImport(UIKit)
+import UIKit
+#endif
 
 /// Typography scale for the Wealth Manager app.
 /// Uses Inter font with system font fallback.
@@ -21,7 +26,15 @@ enum WMTypography {
         }
 
         // Attempt to load Inter; fall back to system font.
-        if NSFont(name: interName, size: size) != nil {
+        #if canImport(AppKit)
+        let fontAvailable = NSFont(name: interName, size: size) != nil
+        #elseif canImport(UIKit)
+        let fontAvailable = UIFont(name: interName, size: size) != nil
+        #else
+        let fontAvailable = false
+        #endif
+
+        if fontAvailable {
             return .custom(interName, size: size)
         }
         return .system(size: size, weight: weight)

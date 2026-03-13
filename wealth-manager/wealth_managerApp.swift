@@ -22,7 +22,11 @@ struct wealth_managerApp: App {
 
     var body: some Scene {
         WindowGroup {
+            #if os(macOS)
             MainSplitView()
+            #else
+            MainTabView()
+            #endif
         }
         .modelContainer(container)
     }

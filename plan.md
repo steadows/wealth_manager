@@ -268,7 +268,7 @@ Lane A (Retirement+FIRE)            Lane B (Tax Intelligence)         Lane C (De
 **Gate:** `5.19 Calculator tests` + `5.20 Integration tests` — all tools correct + AI explanations work
 **Sprint end:** `/verify` + `/code-review` + `git commit`
 
-### [ ] Pre-9 Checkpoint: Plaid Sandbox Integration (2–3 days)
+### [x] Pre-9 Checkpoint: Plaid Sandbox Integration (2–3 days)
 ```
 Lane A (E2E Plaid Flow)              Lane B (Webhook + Edge Cases)      Lane C (Claude API Verify)
 ──────────────────────              ─────────────────────────          ──────────────────────
@@ -286,7 +286,7 @@ P.4 Multi-institution: link 2+        rate limit, network timeout
 **Gate:** All Plaid flows work against live sandbox (not mocks). Claude API returns real responses. No regressions in existing 212+ tests.
 **Checkpoint end:** `/verify` + `/code-review` + `git commit`
 
-### [ ] Sprint 9: Polish + iOS Port (2 weeks)
+### [~] Sprint 9: Polish + iOS Port (2 weeks)
 ```
 Lane A (macOS Polish)               Lane B (iOS Port)                 Lane C (Security + Launch)
 ──────────────────────              ──────────────                    ──────────────────────
@@ -397,14 +397,14 @@ Design system finalized: **Holographic JARVIS glassmorphism** (see Design System
 
 - [x] 0.1 **Dashboard** — Stitch `22bf6d30`. Hero net worth ($847,392.54) in thin white 48px Inter, daily change with green glow, sparkline with blue-to-cyan gradient stroke. AI insight card (frosted glass + cyan orb). Financial health ring (gradient blue-to-cyan, "78" centered). Monthly flow bar chart. Recent transactions as glass rows. Minimal search pill + "+" button in toolbar.
 - [x] 0.2 **Accounts List + Detail** — Stitch `483f4f7e`. Three-column: sidebar | account list (grouped by Banking/Investments/Credit with section subtotals, frosted glass rows) | detail (account header, AI insight chip, segmented Transactions|Performance, transaction list, performance area chart). Filter pills with glow underline.
-- [ ] 0.3 **Account Detail — Transaction Table** — Design in-code. macOS-native `Table` with sortable columns (Date, Merchant, Category, Amount, Status). Glass row styling. Search bar + category filter chips. Right-click context menu. Double-click opens edit sheet. Follows Accounts screen glass treatment.
+- [x] 0.3 **Account Detail — Transaction Table** — Design in-code. macOS-native `Table` with sortable columns (Date, Merchant, Category, Amount, Status). Glass row styling. Search bar + category filter chips. Right-click context menu. Double-click opens edit sheet. Follows Accounts screen glass treatment.
 - [x] 0.4 **Net Worth Chart** — Stitch `74903c84`. Massive thin "$847,392" hero. Time selector glass pills (1M–All). Multi-line chart: Assets (cyan), Liabilities (soft red), Net Worth (blue-to-teal gradient area). AI projection card. Asset allocation segmented bar + milestone timeline. Faint HUD grid overlay on chart.
-- [ ] 0.5 **Add Account Sheet** — Design in-code. macOS `.sheet()` modal with frosted glass background. Step 1: two glass option cards (Link via Plaid / Add Manually). Step 2 (Manual): glass form fields. Cancel (ghost) + Save (blue glow) buttons. Follows glass card patterns from Dashboard.
-- [ ] 0.6 **Goals List + Detail** — Design in-code. List column: glass rows with progress rings (blue-to-cyan gradient), goal name, current/target, projected date. Detail: large progress ring, milestone markers, contribution chart, AI insight card with goal-specific advice. Follows Budget screen's category card pattern.
+- [x] 0.5 **Add Account Sheet** — Design in-code. macOS `.sheet()` modal with frosted glass background. Step 1: two glass option cards (Link via Plaid / Add Manually). Step 2 (Manual): glass form fields. Cancel (ghost) + Save (blue glow) buttons. Follows glass card patterns from Dashboard.
+- [x] 0.6 **Goals List + Detail** — Design in-code. List column: glass rows with progress rings (blue-to-cyan gradient), goal name, current/target, projected date. Detail: large progress ring, milestone markers, contribution chart, AI insight card with goal-specific advice. Follows Budget screen's category card pattern.
 - [x] 0.7 **AI Advisor Chat** — Stitch `f9eb939a`. Centered chat container (700px max). Floating blue-to-cyan AI orb with bloom. Frosted glass message bubbles (AI = cyan left border, user = blue glass right-aligned). Embedded decision cards. Glass pill input bar + suggested prompt chips. "Your personal CFO" subtitle.
-- [ ] 0.8 **CFO Briefing (Reports)** — Design in-code. List column: past briefings by date (glass rows). Detail: health score ring (large), Executive Summary, Key Insights (3 bullets), Action Items, Goal Progress mini bars, Risk Alerts. All in frosted glass cards. "Generate New" + "Export PDF" ghost buttons. AI insight card at top.
+- [x] 0.8 **CFO Briefing (Reports)** — Design in-code. List column: past briefings by date (glass rows). Detail: health score ring (large), Executive Summary, Key Insights (3 bullets), Action Items, Goal Progress mini bars, Risk Alerts. All in frosted glass cards. "Generate New" + "Export PDF" ghost buttons. AI insight card at top.
 - [x] 0.9 **Budget** — Stitch `97ec8693`. Month selector glass pill. Budget summary bar (Income/Spent/Remaining with gradient progress). AI insight card (spending alerts). 2x4 category grid: glass cards with progress rings, spend vs budget, trend arrows. Over-budget items glow red. Spending trend area chart (actual vs budget line).
-- [ ] 0.10 **Planning** — Design in-code. Sections for Retirement, Tax, Debt, Insurance as glass cards with key metrics. Interactive scenario sliders (frosted glass controls). AI projection cards per section. Chart visualizations follow Net Worth screen patterns. Entry point for Sprint 8 advanced tools.
+- [x] 0.10 **Planning** — Design in-code. Sections for Retirement, Tax, Debt, Insurance as glass cards with key metrics. Interactive scenario sliders (frosted glass controls). AI projection cards per section. Chart visualizations follow Net Worth screen patterns. Entry point for Sprint 8 advanced tools.
 
 ---
 
@@ -1027,20 +1027,20 @@ Each calculator is a `struct` with static methods. No dependencies, no state —
 
 ### 2C — Net Worth Views
 
-- [ ] 2.10 **NetWorthView.swift** — Main net worth screen:
+- [x] 2.10 **NetWorthView.swift** — Main net worth screen:
   - Hero: current net worth, daily/weekly change with arrow
   - Swift Charts line chart with time range selector (1M, 3M, 6M, 1Y, 5Y, All)
   - Assets vs Liabilities stacked bar chart
   - Breakdown list: each account's contribution to net worth
   - NavigationLink to ProjectionView and WhatIfView
 
-- [ ] 2.11 **ProjectionView.swift** — Trajectory visualization:
+- [x] 2.11 **ProjectionView.swift** — Trajectory visualization:
   - Multi-line chart showing conservative/moderate/aggressive scenarios
   - Adjustable sliders: annual savings, expected return rate, years to project
   - Milestone markers on the chart ($100k, $250k, $500k, $1M, etc.)
   - Monte Carlo probability bands (10th-90th percentile shading)
 
-- [ ] 2.12 **WhatIfView.swift** — Interactive simulator:
+- [x] 2.12 **WhatIfView.swift** — Interactive simulator:
   - Base case line shown as reference
   - Toggle scenarios: "Pay off mortgage early", "Increase savings by $X/mo", "Take a sabbatical year", "Sell RSUs now vs hold"
   - Each toggle adds/removes a comparison line on the chart
@@ -1057,7 +1057,7 @@ Each calculator is a `struct` with static methods. No dependencies, no state —
 
 - [x] 2.14 **Decimal compliance audit** — Grep entire codebase for `Double` in financial contexts. All money values must be `Decimal`.
 
-- [ ] 2.15 **Integration tests** — Test ProjectionService end-to-end with mock repos: create profile + accounts → generate projections → verify output structure.
+- [x] 2.15 **Integration tests** — Test ProjectionService end-to-end with mock repos: create profile + accounts → generate projections → verify output structure.
 
 ---
 
@@ -1079,7 +1079,7 @@ Search for macOS WKWebView Plaid Link integration examples
 
 ### 3-PREREQ — Plaid Account Setup
 
-- [ ] 3.0 **Sign up for Plaid** at https://dashboard.plaid.com/signup — free sandbox access, no credit card needed. Get `client_id` and `sandbox` secret. Store in `backend/.env` (never in code). Sandbox gives test institutions + fake transaction data for development.
+- [x] 3.0 **Sign up for Plaid** at https://dashboard.plaid.com/signup — free sandbox access, no credit card needed. Get `client_id` and `sandbox` secret. Store in `backend/.env` (never in code). Sandbox gives test institutions + fake transaction data for development.
 
 ### 3A — Backend Scaffold
 
@@ -1196,7 +1196,7 @@ Use `postgres-patterns` for data types and indexing. Use `database-migrations` f
 
 ### 3C — Auth
 
-- [ ] 3.5 **auth_service.py** — Apple Sign-In token validation + JWT:
+- [x] 3.5 **auth_service.py** — Apple Sign-In token validation + JWT:
   ```python
   class AuthService:
       async def verify_apple_token(self, identity_token: str) -> AppleUserInfo
@@ -1266,7 +1266,7 @@ Use `plaid-fintech` skill for Link token flows, transaction sync patterns, and e
 
 ### 3E — Sync Engine
 
-- [ ] 3.11 **sync_service.py** — Bidirectional delta sync:
+- [x] 3.11 **sync_service.py** — Bidirectional delta sync:
   ```python
   class SyncService:
       async def get_changes_since(self, user_id: UUID, since: datetime) -> SyncResponse:
@@ -1280,7 +1280,7 @@ Use `plaid-fintech` skill for Link token flows, transaction sync patterns, and e
           # Conflict resolution: server wins for Plaid data, client wins for manual data
   ```
 
-- [ ] 3.12 **Sync endpoints**:
+- [x] 3.12 **Sync endpoints**:
   - `GET /sync?since={iso_timestamp}` — pull changes
   - `POST /sync` — push local changes (manual accounts, goals, profile updates)
 
@@ -1316,7 +1316,7 @@ Use `docker-patterns` for multi-service compose with health checks.
 
 Use `swift-protocol-di-testing` for protocol-based HTTP client abstraction.
 
-- [ ] 3.15 **APIClient.swift** in `Services/Network/`:
+- [x] 3.15 **APIClient.swift** in `Services/Network/`:
   ```swift
   protocol APIClientProtocol {
       func request<T: Decodable>(_ endpoint: Endpoint) async throws -> T
@@ -1332,7 +1332,7 @@ Use `swift-protocol-di-testing` for protocol-based HTTP client abstraction.
   }
   ```
 
-- [ ] 3.16 **Endpoint.swift** — Type-safe endpoint definitions:
+- [x] 3.16 **Endpoint.swift** — Type-safe endpoint definitions:
   ```swift
   enum Endpoint {
       case appleSignIn(identityToken: String)
@@ -1345,7 +1345,7 @@ Use `swift-protocol-di-testing` for protocol-based HTTP client abstraction.
   }
   ```
 
-- [ ] 3.17 **AuthService.swift** — Apple Sign-In + JWT lifecycle:
+- [x] 3.17 **AuthService.swift** — Apple Sign-In + JWT lifecycle:
   ```swift
   protocol AuthServiceProtocol {
       func signInWithApple() async throws -> User
@@ -1356,7 +1356,7 @@ Use `swift-protocol-di-testing` for protocol-based HTTP client abstraction.
   ```
   Stores tokens in Keychain (not UserDefaults).
 
-- [ ] 3.18 **PlaidLinkService.swift** — Coordinates Plaid Link via WKWebView (macOS):
+- [x] 3.18 **PlaidLinkService.swift** — Coordinates Plaid Link via WKWebView (macOS):
   ```swift
   protocol PlaidLinkServiceProtocol {
       func createLinkToken() async throws -> String
@@ -1372,7 +1372,7 @@ Use `swift-protocol-di-testing` for protocol-based HTTP client abstraction.
   // iOS port: replace with native Plaid Link iOS SDK (LinkKit)
   ```
 
-- [ ] 3.18b **PlaidLinkWebView.swift** — NSViewRepresentable wrapping WKWebView:
+- [x] 3.18b **PlaidLinkWebView.swift** — NSViewRepresentable wrapping WKWebView:
   ```swift
   struct PlaidLinkWebView: NSViewRepresentable {
       let linkToken: String
@@ -1385,7 +1385,7 @@ Use `swift-protocol-di-testing` for protocol-based HTTP client abstraction.
   }
   ```
 
-- [ ] 3.19 **SyncService.swift** — Bidirectional sync engine:
+- [x] 3.19 **SyncService.swift** — Bidirectional sync engine:
   ```swift
   protocol SyncServiceProtocol {
       func pullChanges() async throws
@@ -1398,11 +1398,11 @@ Use `swift-protocol-di-testing` for protocol-based HTTP client abstraction.
   // Stores lastSyncedAt in UserDefaults
   ```
 
-- [ ] 3.20 **Update AddAccountView** — Add "Link Account" option alongside manual entry. Tapping "Link Account" triggers PlaidLinkService flow.
+- [x] 3.20 **Update AddAccountView** — Add "Link Account" option alongside manual entry. Tapping "Link Account" triggers PlaidLinkService flow.
 
 ### 3H — Testing
 
-- [ ] 3.21 **Backend pytest suite** — Use `python-testing` patterns:
+- [x] 3.21 **Backend pytest suite** — Use `python-testing` patterns:
   - `conftest.py`: async test client fixture, test database (SQLite in-memory), mock Plaid client, mock auth
   - `test_auth.py`: verify Apple token exchange, JWT creation/validation, refresh flow, expired token handling
   - `test_plaid.py`: mock Plaid API responses, test link token creation, token exchange, transaction sync
@@ -1410,9 +1410,9 @@ Use `swift-protocol-di-testing` for protocol-based HTTP client abstraction.
   - `test_accounts.py`: CRUD operations, authorization (users can only see their own data)
   - Target: 80%+ coverage
 
-- [ ] 3.22 **iOS networking tests** — Mock APIClient returns predefined responses. Test SyncService upsert logic. Test auth flow state machine.
+- [x] 3.22 **iOS networking tests** — Mock APIClient returns predefined responses. Test SyncService upsert logic. Test auth flow state machine.
 
-- [ ] 3.23 **End-to-end Plaid sandbox test** — Use Plaid sandbox credentials: link a test institution → verify accounts appear → trigger transaction webhook → verify transactions sync to iOS.
+- [x] 3.23 **End-to-end Plaid sandbox test** — Use Plaid sandbox credentials: link a test institution → verify accounts appear → trigger transaction webhook → verify transactions sync to iOS.
 
 ---
 
@@ -1442,7 +1442,7 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
 
 ### 4A — Backend Claude Integration
 
-- [ ] 4.1 **claude_service.py** — Claude API wrapper:
+- [x] 4.1 **claude_service.py** — Claude API wrapper:
   ```python
   class ClaudeService:
       def __init__(self, settings: Settings):
@@ -1457,7 +1457,7 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
       # Uses tool_use to get structured JSON responses for reports
   ```
 
-- [ ] 4.2 **prompt_manager.py** — Template loading + context injection:
+- [x] 4.2 **prompt_manager.py** — Template loading + context injection:
   ```python
   class PromptManager:
       def __init__(self, prompts_dir: Path):
@@ -1470,19 +1470,19 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
       # Renders Jinja2 template with financial context injected
   ```
 
-- [ ] 4.3 **System prompts** in `app/prompts/system/`:
+- [x] 4.3 **System prompts** in `app/prompts/system/`:
   - `financial_advisor.txt` — Core persona: "You are a certified financial planner acting as a personal CFO. You give specific, actionable advice based on the user's actual financial data. Be direct, quantify impact, and prioritize recommendations by financial impact. Never give generic advice — always reference their specific numbers."
   - `report_generator.txt` — Structured output: "Generate a financial briefing report. Use these sections: Executive Summary, Net Worth Update, Key Insights (3 max), Action Items (prioritized), Goal Progress, Risk Alerts. Be concise — this is a dashboard summary, not an essay."
   - `tax_advisor.txt` — Tax-specific persona with disclaimers about not being a CPA
   - `debt_strategist.txt` — Debt optimization focus
 
-- [ ] 4.4 **Jinja2 templates** in `app/prompts/templates/`:
+- [x] 4.4 **Jinja2 templates** in `app/prompts/templates/`:
   - `weekly_briefing.jinja2` — Injects: net worth change, top 3 spending categories, goal progress, upcoming bills, any triggered alerts
   - `goal_coaching.jinja2` — Injects: specific goal data, progress rate, projected vs target date
   - `debt_strategy.jinja2` — Injects: all debts with rates/balances, available extra payment, investment return rate
   - `retirement_analysis.jinja2` — Injects: portfolio value, contribution rate, FIRE number, years to retirement
 
-- [ ] 4.5 **advisory_service.py** — Orchestrates AI analysis:
+- [x] 4.5 **advisory_service.py** — Orchestrates AI analysis:
   ```python
   class AdvisoryService:
       async def chat(self, user_id: UUID, message: str, conversation_id: UUID | None) -> AsyncGenerator[str, None]:
@@ -1498,7 +1498,7 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
       async def analyze_debt(self, user_id: UUID) -> DebtAnalysis
   ```
 
-- [ ] 4.6 **report_service.py** — CFO briefing generation:
+- [x] 4.6 **report_service.py** — CFO briefing generation:
   ```python
   class ReportService:
       async def generate_briefing(self, user_id: UUID, period: str) -> CFOBriefing:
@@ -1520,7 +1520,7 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
           )
   ```
 
-- [ ] 4.7 **alert_service.py** — Rule-based proactive alert detection:
+- [x] 4.7 **alert_service.py** — Rule-based proactive alert detection:
   ```python
   class AlertService:
       async def check_alerts(self, user_id: UUID) -> list[ProactiveAlert]:
@@ -1542,7 +1542,7 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
           return alerts
   ```
 
-- [ ] 4.8 **Advisory routers**:
+- [x] 4.8 **Advisory routers**:
   - `POST /advisor/chat` — streaming response (SSE), accepts `{message: str, conversation_id: UUID?}`
   - `GET /reports/briefing?period=weekly|monthly` — generate or fetch cached briefing
   - `GET /reports/health-score` — current health score with AI narrative explanation
@@ -1553,7 +1553,7 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
 
 ### 4B — iOS Advisory Models & Views
 
-- [ ] 4.9 **New SwiftData models**:
+- [x] 4.9 **New SwiftData models**:
   ```swift
   @Model class AdvisorMessage {
       @Attribute(.unique) var id: UUID
@@ -1585,7 +1585,7 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
   }
   ```
 
-- [ ] 4.10 **AdvisorChatViewModel.swift**:
+- [x] 4.10 **AdvisorChatViewModel.swift**:
   ```swift
   @Observable final class AdvisorChatViewModel {
       var messages: [AdvisorMessage] = []
@@ -1599,7 +1599,7 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
   }
   ```
 
-- [ ] 4.11 **AdvisorChatView.swift** — Full chat interface:
+- [x] 4.11 **AdvisorChatView.swift** — Full chat interface:
   - ScrollView with message bubbles (user right-aligned blue, assistant left-aligned gray)
   - Markdown rendering in assistant messages (use `AttributedString` or lightweight markdown parser)
   - Streaming text animation (characters appear as they arrive via SSE)
@@ -1607,7 +1607,7 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
   - Input bar: text field + send button
   - Typing indicator while streaming
 
-- [ ] 4.12 **CFOBriefingViewModel.swift**:
+- [x] 4.12 **CFOBriefingViewModel.swift**:
   ```swift
   @Observable final class CFOBriefingViewModel {
       var currentBriefing: CFOBriefing?
@@ -1618,7 +1618,7 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
   }
   ```
 
-- [ ] 4.13 **CFOBriefingView.swift** — Report card layout:
+- [x] 4.13 **CFOBriefingView.swift** — Report card layout:
   - Header: period label, generation date
   - Health score ring (large, centered) with segment breakdown
   - "Executive Summary" section — rendered markdown
@@ -1628,20 +1628,20 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
   - "Risk Alerts" — warning cards if any
   - Share button → PDF export
 
-- [ ] 4.14 **AlertsListView.swift + AlertsViewModel.swift**:
+- [x] 4.14 **AlertsListView.swift + AlertsViewModel.swift**:
   - List of ProactiveAlert cards sorted by severity then date
   - Each card: severity icon (info=blue, warning=orange, action=red), title, message preview
   - Tap to expand full message
   - Swipe to dismiss
   - Badge count on tab bar
 
-- [ ] 4.15 **Update MainSplitView** — Advisor and Reports sections already in sidebar. Add alert badge count to sidebar Dashboard item. Add menu bar: View > Advisor Chat (Cmd+Shift+A)
+- [x] 4.15 **Update MainSplitView** — Advisor and Reports sections already in sidebar. Add alert badge count to sidebar Dashboard item. Add menu bar: View > Advisor Chat (Cmd+Shift+A)
 
 ### 4C — Testing
 
-- [ ] 4.16 **Backend advisory tests** — Mock Claude API responses. Test prompt construction includes financial context. Test structured output parsing. Test alert rule triggers.
-- [ ] 4.17 **iOS advisory tests** — Mock API responses for chat/briefing/alerts. Test ViewModel state transitions. Test streaming message assembly.
-- [ ] 4.18 **E2E test** — Create test user with known financial data → request briefing → verify response contains relevant numbers → verify alerts trigger for configured scenarios.
+- [x] 4.16 **Backend advisory tests** — Mock Claude API responses. Test prompt construction includes financial context. Test structured output parsing. Test alert rule triggers.
+- [x] 4.17 **iOS advisory tests** — Mock API responses for chat/briefing/alerts. Test ViewModel state transitions. Test streaming message assembly.
+- [x] 4.18 **E2E test** — Create test user with known financial data → request briefing → verify response contains relevant numbers → verify alerts trigger for configured scenarios.
 
 ---
 
@@ -1655,7 +1655,7 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
 
 ### 5A — Retirement & FIRE Planning
 
-- [ ] 5.1 **RetirementDashboardView.swift** — Overview screen:
+- [x] 5.1 **RetirementDashboardView.swift** — Overview screen:
   - Retirement readiness score (0-100) gauge
   - Projected shortfall/surplus at retirement age
   - FIRE number display with progress bar
@@ -1663,73 +1663,73 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
   - Navigation to sub-tools
   - "Ask AI to explain" button → sends readiness data to advisor chat
 
-- [ ] 5.2 **FIRECalculatorView.swift** — Interactive FIRE calculator:
+- [x] 5.2 **FIRECalculatorView.swift** — Interactive FIRE calculator:
   - Inputs: annual expenses, portfolio value, annual savings, expected return
   - Segmented control: Lean FIRE (25x essential expenses) | Regular FIRE (25x total) | Fat FIRE (33x total)
   - Output: FIRE number, years to FIRE, required savings rate
   - Chart: portfolio growth trajectory to FIRE number intersection
 
-- [ ] 5.3 **ContributionOptimizerView.swift** — Contribution impact simulator:
+- [x] 5.3 **ContributionOptimizerView.swift** — Contribution impact simulator:
   - Current contribution amount display
   - Slider: "Increase by X%"
   - Real-time update: "Retire Y years earlier" / "Retire with $Z more"
   - 401k vs IRA vs taxable comparison table
   - AI recommendation: optimal contribution allocation
 
-- [ ] 5.4 **SocialSecurityView.swift** — Breakeven analysis:
+- [x] 5.4 **SocialSecurityView.swift** — Breakeven analysis:
   - Three columns: claim at 62, claim at 67, claim at 70
   - Monthly benefit for each age
   - Breakeven chart: crossover points where delaying pays off
   - Lifetime benefit comparison at various life expectancies
 
-- [ ] 5.5 **Extend RetirementCalculator** — Add: required minimum distribution (RMD) schedule, Social Security estimation from income history, dynamic spending rules (guardrails strategy)
+- [x] 5.5 **Extend RetirementCalculator** — Add: required minimum distribution (RMD) schedule, Social Security estimation from income history, dynamic spending rules (guardrails strategy)
 
 ### 5B — Tax Intelligence
 
-- [ ] 5.6 **TaxDashboardView.swift** — Tax overview:
+- [x] 5.6 **TaxDashboardView.swift** — Tax overview:
   - Estimated annual tax liability (federal + state)
   - Marginal vs effective rate display
   - Pie chart: tax breakdown by source (income, capital gains, dividends)
   - Links to optimization tools
 
-- [ ] 5.7 **HarvestingOpportunitiesView.swift** — Tax-loss harvesting:
+- [x] 5.7 **HarvestingOpportunitiesView.swift** — Tax-loss harvesting:
   - List of holdings with unrealized losses
   - Each row: security name, cost basis, current value, unrealized loss, estimated tax savings
   - Sort by largest potential savings
   - "Harvest" button → explains wash sale rules via AI
   - Seasonal reminder: optimal harvesting in Q4
 
-- [ ] 5.8 **RothConversionView.swift** — Roth conversion ladder analysis:
+- [x] 5.8 **RothConversionView.swift** — Roth conversion ladder analysis:
   - Input: conversion amount slider
   - Output: tax cost this year, projected tax savings in retirement, net benefit
   - Multi-year projection: optimal conversion schedule across tax brackets
   - Chart: traditional vs Roth balance over time
 
-- [ ] 5.9 **AssetLocationView.swift** — Asset location optimizer:
+- [x] 5.9 **AssetLocationView.swift** — Asset location optimizer:
   - Current allocation: which assets in which account types
   - Recommendation: what should move where for tax efficiency
   - Rules: bonds/REITs → tax-advantaged, growth stocks → taxable (lower cap gains rate), international stocks → taxable (foreign tax credit)
   - Estimated annual tax savings from optimization
 
-- [ ] 5.10 **Extend TaxCalculator** — Add: mega backdoor Roth eligibility check (plan allows after-tax + in-service conversion?), state tax bracket integration, AMT rough estimate
+- [x] 5.10 **Extend TaxCalculator** — Add: mega backdoor Roth eligibility check (plan allows after-tax + in-service conversion?), state tax bracket integration, AMT rough estimate
 
 ### 5C — Debt Strategy Intelligence
 
-- [ ] 5.11 **DebtStrategyView.swift** — Comprehensive debt dashboard:
+- [x] 5.11 **DebtStrategyView.swift** — Comprehensive debt dashboard:
   - Total debt, weighted average interest rate, total minimum payments
   - Payoff comparison: Avalanche vs Snowball vs Optimized (side-by-side)
   - For each strategy: total interest paid, months to payoff, visual timeline
   - Extra payment input: "If I put $X extra/month toward debt..."
   - AI recommendation based on user's psychology + math
 
-- [ ] 5.12 **RefinanceAnalysisView.swift** — Mortgage refinance monitor:
+- [x] 5.12 **RefinanceAnalysisView.swift** — Mortgage refinance monitor:
   - Current mortgage details: rate, balance, monthly payment, remaining months
   - "What if" refinance: new rate input, closing costs, new term
   - Break-even month calculation
   - Monthly savings, total interest savings
   - Rate drop alert threshold setting (notify when rates drop below X%)
 
-- [ ] 5.13 **DebtVsInvestView.swift** — Pay off debt or invest calculator:
+- [x] 5.13 **DebtVsInvestView.swift** — Pay off debt or invest calculator:
   - Input: extra monthly amount, debt rate, expected investment return
   - Side-by-side 10-year projection: scenario A (pay debt) vs scenario B (invest)
   - Net worth comparison at each year
@@ -1738,26 +1738,26 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
 
 ### 5D — Insurance & Risk Gap Analysis
 
-- [ ] 5.14 **InsuranceDashboardView.swift** — Risk overview:
+- [x] 5.14 **InsuranceDashboardView.swift** — Risk overview:
   - Emergency fund adequacy bar (months covered vs target)
   - Life insurance coverage gap (need vs have)
   - Disability coverage gap
   - Estate planning checklist progress
   - Overall risk score
 
-- [ ] 5.15 **LifeInsuranceCalculatorView.swift** — DIME method:
+- [x] 5.15 **LifeInsuranceCalculatorView.swift** — DIME method:
   - Inputs: outstanding debts, annual income, years to replace, mortgage balance, education fund needs, existing coverage
   - Output: total coverage needed, current gap
   - Recommendation: term vs whole, coverage amount
 
-- [ ] 5.16 **EmergencyFundView.swift** — Emergency fund manager:
+- [x] 5.16 **EmergencyFundView.swift** — Emergency fund manager:
   - Current liquid savings
   - Monthly expenses (from transaction data)
   - Months covered gauge (target: 3-6 months depending on situation)
   - If below target: rebuilding plan with monthly savings recommendation
   - "Rebuild by [date]" calculator
 
-- [ ] 5.17 **EstatePlanningChecklistView.swift** — Simple checklist:
+- [x] 5.17 **EstatePlanningChecklistView.swift** — Simple checklist:
   - [ ] Will/Trust created
   - [ ] Beneficiaries updated on all accounts
   - [ ] Power of Attorney designated
@@ -1769,15 +1769,15 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
 
 ### 5E — ViewModels & Testing
 
-- [ ] 5.18 **Create matching ViewModels** for all views above. Each ViewModel:
+- [x] 5.18 **Create matching ViewModels** for all views above. Each ViewModel:
   - Injects relevant calculator(s) and repository(ies)
   - Exposes computed results as `@Observable` properties
   - Has an `analyze()` or `calculate()` async method
   - Has a `getAIExplanation()` async method that sends data to advisory endpoint
 
-- [ ] 5.19 **Calculator unit tests** — Test extended calculator methods with known inputs/outputs. Verify edge cases: zero income, zero debt, negative net worth, very large numbers.
+- [x] 5.19 **Calculator unit tests** — Test extended calculator methods with known inputs/outputs. Verify edge cases: zero income, zero debt, negative net worth, very large numbers.
 
-- [ ] 5.20 **Integration tests** — Test full flow: load user data → run calculation → request AI explanation → verify response makes sense for the input data.
+- [x] 5.20 **Integration tests** — Test full flow: load user data → run calculation → request AI explanation → verify response makes sense for the input data.
 
 ---
 
@@ -1789,22 +1789,22 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
 **Sprint:** 9 — Three parallel lanes: macOS Polish (A), iOS Port (B), Security+Launch (C)
 **See sprint plan above for concurrency lanes**
 
-- [ ] 6.1 **Push notifications** — Backend: Celery beat task runs weekly to generate briefings, sends APNs push. iOS: register for push, handle notification tap → navigate to briefing or alert.
+- [x] 6.1 **Push notifications** — Backend: Celery beat task runs weekly to generate briefings, sends APNs push. iOS: register for push, handle notification tap → navigate to briefing or alert.
 - [ ] 6.2 **iOS widgets** (WidgetKit) — 3 widgets: Net Worth (small, shows balance + change), Health Score (small, shows score ring), Next Milestone (medium, shows closest goal + progress)
-- [ ] 6.3 **Onboarding wizard** — Multi-step flow on first launch: Welcome → Profile setup (age, income, filing status) → Link first account (Plaid or manual) → Set first goal → Dashboard. Skip-able but encouraged. Stored `hasCompletedOnboarding` in UserDefaults.
-- [ ] 6.4 **Biometric auth** — Face ID / Touch ID gate on app launch. Store access token in Keychain with biometric protection (`.biometryCurrentSet`). Fallback to passcode.
-- [ ] 6.5 **Data export** — Export financial data as CSV (accounts, transactions, net worth history). Export CFO briefing as PDF (using UIGraphicsPDFRenderer). Share sheet integration.
+- [x] 6.3 **Onboarding wizard** — Multi-step flow on first launch: Welcome → Profile setup (age, income, filing status) → Link first account (Plaid or manual) → Set first goal → Dashboard. Skip-able but encouraged. Stored `hasCompletedOnboarding` in UserDefaults.
+- [x] 6.4 **Biometric auth** — Face ID / Touch ID gate on app launch. Store access token in Keychain with biometric protection (`.biometryCurrentSet`). Fallback to passcode.
+- [x] 6.5 **Data export** — Export financial data as CSV (accounts, transactions, net worth history). Export CFO briefing as PDF (using UIGraphicsPDFRenderer). Share sheet integration.
 - [ ] 6.6 **Accessibility audit** — VoiceOver labels on all interactive elements. Dynamic Type support on all text. Sufficient color contrast. Chart descriptions for VoiceOver.
-- [ ] 6.7 **Annual Review mode** — End-of-year comprehensive analysis: yearly net worth change, total income/spending, goal progress summary, top 5 spending categories, investment performance, tax summary, prioritized action list for next year. Generated via Claude with full-year data context.
+- [x] 6.7 **Annual Review mode** — End-of-year comprehensive analysis: yearly net worth change, total income/spending, goal progress summary, top 5 spending categories, investment performance, tax summary, prioritized action list for next year. Generated via Claude with full-year data context.
 - [ ] 6.8 **Performance optimization** — Lazy loading for transaction lists (pagination). Background fetch for sync. Image caching for institution logos. SwiftData query optimization (fetch limits, batch sizes).
 - [ ] 6.9 **App Store assets** — Screenshots (macOS window screenshots), app description, keywords, privacy policy, App Store Connect metadata.
-- [ ] 6.10 **Security audit** — Use `security-review` skill: verify no hardcoded secrets, all API keys in env vars, Keychain for tokens, certificate pinning for API calls, Plaid access tokens encrypted at rest in backend, SQL injection prevention (parameterized queries), rate limiting on all endpoints.
+- [x] 6.10 **Security audit** — Use `security-review` skill: verify no hardcoded secrets, all API keys in env vars, Keychain for tokens, certificate pinning for API calls, Plaid access tokens encrypted at rest in backend, SQL injection prevention (parameterized queries), rate limiting on all endpoints.
 
 ### 6B — iOS Port (after macOS is stable)
 
-- [ ] 6.11 **Add iOS target** to Xcode project. Shared source files: Models/, Repositories/, ViewModels/, Services/, Calculators/, Extensions/. Platform-specific: Views/.
-- [ ] 6.12 **Create iOS MainTabView.swift** — TabView replacing sidebar. Tabs: Dashboard, Accounts, Goals, Advisor, Profile.
-- [ ] 6.13 **Adapt views for iOS** — Replace macOS Table with List, replace toolbar with navigation bar buttons, replace `.sheet()` sizing for iOS, replace right-click context menus with swipe actions.
+- [x] 6.11 **Add iOS target** to Xcode project. Shared source files: Models/, Repositories/, ViewModels/, Services/, Calculators/, Extensions/. Platform-specific: Views/.
+- [x] 6.12 **Create iOS MainTabView.swift** — TabView replacing sidebar. Tabs: Dashboard, Accounts, Goals, Advisor, Profile.
+- [x] 6.13 **Adapt views for iOS** — Replace macOS Table with List, replace toolbar with navigation bar buttons, replace `.sheet()` sizing for iOS, replace right-click context menus with swipe actions.
 - [ ] 6.14 **Replace Plaid WKWebView with native Plaid Link iOS SDK** — Add LinkKit pod/SPM, use PlaidLinkHandler for native flow.
 - [ ] 6.15 **Add iOS widgets** (WidgetKit) — Net Worth (small), Health Score (small), Next Milestone (medium).
 - [ ] 6.16 **iOS-specific testing** — Run full test suite on iOS simulator, verify UI adapts correctly, test Plaid Link native flow.

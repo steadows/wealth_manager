@@ -115,7 +115,9 @@ struct ProfileView: View {
                     displayedComponents: .date
                 )
                 .labelsHidden()
+                #if os(macOS)
                 .datePickerStyle(.field)
+                #endif
 
                 if let age = draft.age {
                     Text("Age: \(age)")
