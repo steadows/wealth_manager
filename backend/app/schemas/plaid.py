@@ -29,3 +29,16 @@ class PlaidExchangeResponse(BaseModel):
     """Response after exchanging a Plaid public token."""
 
     accounts: list[AccountResponse]
+
+
+class SandboxPublicTokenRequest(BaseModel):
+    """Request to create a sandbox public token (sandbox only)."""
+
+    institution_id: str = "ins_109508"
+    initial_products: list[str] = ["transactions"]
+
+
+class SandboxPublicTokenResponse(BaseModel):
+    """Response containing a sandbox public token."""
+
+    public_token: str

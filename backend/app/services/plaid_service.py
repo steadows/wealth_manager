@@ -14,6 +14,9 @@ from plaid.model.item_public_token_exchange_request import (
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
 from plaid.model.products import Products
+from plaid.model.sandbox_public_token_create_request import (
+    SandboxPublicTokenCreateRequest,
+)
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 
 from app.config import get_settings
@@ -46,7 +49,7 @@ class PlaidService:
         """
         settings = get_settings()
         cid = client_id or settings.plaid_client_id
-        sec = secret or settings.plaid_secret
+        sec = secret or settings.plaid_active_secret
         env = environment or settings.plaid_env
 
         configuration = plaid.Configuration(
@@ -112,6 +115,32 @@ class PlaidService:
             "next_cursor": response.next_cursor,
             "has_more": response.has_more,
         }
+
+    def create_sandbox_public_token(
+        self,
+        institution_id: str = "ins_109508",
+        initial_products: list[str] | None = None,
+    ) -> str:
+        """Create a sandbox public token without going through Link.
+
+        Only works in the sandbox environment. Useful for integration
+        testing the token exchange and sync flows end-to-end.
+
+        Args:
+            institution_id: Sandbox institution ID. Defaults to
+                "ins_109508" (First Platypus Bank — all products).
+            initial_products: Products to enable. Defaults to ["transactions"].
+
+        Returns:
+            A public_token string ready for exchange.
+        """
+        products = [Products(p) for p in (initial_products or ["transactions"])]
+        request = SandboxPublicTokenCreateRequest(
+            institution_id=institution_id,
+            initial_products=products,
+        )
+        response = self._client.sandbox_public_token_create(request)
+        return response.public_token
 
     def get_accounts(self, access_token: str) -> list[dict]:
         """Fetch account balances from Plaid.

@@ -9,6 +9,7 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import get_settings
 from app.dependencies import get_current_user, get_db
 from app.models.account import Account
 from app.repositories.account_repository import AccountRepository
@@ -17,6 +18,8 @@ from app.schemas.plaid import (
     PlaidExchangeRequest,
     PlaidExchangeResponse,
     PlaidLinkResponse,
+    SandboxPublicTokenRequest,
+    SandboxPublicTokenResponse,
 )
 from app.services.plaid_service import PlaidService, get_plaid_service
 
@@ -157,3 +160,31 @@ async def sync_account(
         "removed_count": len(result["removed"]),
         "has_more": result["has_more"],
     }
+
+
+@router.post(
+    "/sandbox/public-token",
+    response_model=SandboxPublicTokenResponse,
+    status_code=201,
+)
+async def create_sandbox_public_token(
+    body: SandboxPublicTokenRequest = SandboxPublicTokenRequest(),
+    plaid: PlaidService = Depends(get_plaid_service),
+) -> SandboxPublicTokenResponse:
+    """Create a Plaid public token via the sandbox API (sandbox only).
+
+    Bypasses Link UI for integration testing. Returns a public_token
+    that can be exchanged via /exchange-token.
+    """
+    settings = get_settings()
+    if settings.plaid_env != "sandbox":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This endpoint is only available in the sandbox environment",
+        )
+
+    public_token = plaid.create_sandbox_public_token(
+        institution_id=body.institution_id,
+        initial_products=body.initial_products,
+    )
+    return SandboxPublicTokenResponse(public_token=public_token)

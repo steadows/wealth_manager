@@ -25,10 +25,18 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60
 
-    # Plaid — required in production, optional in dev (empty string OK for Sprint 3)
+    # Plaid — per-environment secrets; resolved via plaid_active_secret property
     plaid_client_id: str = ""
-    plaid_secret: str = ""
+    plaid_sandbox_secret: str = ""
+    plaid_production_secret: str = ""
     plaid_env: str = "sandbox"
+
+    @property
+    def plaid_active_secret(self) -> str:
+        """Return the Plaid secret matching the current environment."""
+        if self.plaid_env == "production":
+            return self.plaid_production_secret
+        return self.plaid_sandbox_secret
 
     # Claude AI — required in production
     claude_api_key: str = ""
