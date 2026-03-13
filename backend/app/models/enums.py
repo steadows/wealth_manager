@@ -48,6 +48,15 @@ class GoalType(StrEnum):
     CUSTOM = "custom"
 
 
+class GoalPriority(StrEnum):
+    """Goal priority level matching Swift GoalPriority rawValues."""
+
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+
 class DebtType(StrEnum):
     """Debt classification matching Swift DebtType rawValues."""
 

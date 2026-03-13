@@ -36,3 +36,5 @@ venv/
 
 # Claude Code
 .claude/tasks/
+
+.axon/

@@ -98,7 +98,7 @@ async def _seed_user_and_data(client: AsyncClient) -> None:
             goal_type=GoalType.EMERGENCY_FUND,
             target_amount=Decimal("10000.0000"),
             current_amount=Decimal("2000.0000"),
-            priority=1,
+            priority="high",
             created_at=old_time,
             updated_at=old_time,
         )
@@ -109,7 +109,7 @@ async def _seed_user_and_data(client: AsyncClient) -> None:
             goal_type=GoalType.RETIREMENT,
             target_amount=Decimal("500000.0000"),
             current_amount=Decimal("50000.0000"),
-            priority=2,
+            priority="medium",
             created_at=new_time,
             updated_at=new_time,
         )
@@ -240,7 +240,7 @@ async def test_post_sync_applies_changes(client: AsyncClient) -> None:
                 "goal_name": "Vacation Fund",
                 "goal_type": "travel",
                 "target_amount": "5000.00",
-                "priority": 3,
+                "priority": "low",
             }
         ],
         "debts": [],

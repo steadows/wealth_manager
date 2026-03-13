@@ -102,7 +102,7 @@ async def _seed_data(
         goal_type=GoalType.EMERGENCY_FUND,
         target_amount=Decimal("10000.0000"),
         current_amount=Decimal("2000.0000"),
-        priority=1,
+        priority="high",
         created_at=old_time,
         updated_at=old_time,
     )
@@ -113,7 +113,7 @@ async def _seed_data(
         goal_type=GoalType.RETIREMENT,
         target_amount=Decimal("500000.0000"),
         current_amount=Decimal("50000.0000"),
-        priority=2,
+        priority="medium",
         created_at=new_time,
         updated_at=new_time,
     )
@@ -298,7 +298,7 @@ async def test_apply_client_changes_creates_records(session: AsyncSession) -> No
                 "goal_name": "Client Goal",
                 "goal_type": GoalType.CUSTOM,
                 "target_amount": Decimal("10000.0000"),
-                "priority": 1,
+                "priority": "high",
             }
         ],
         debts=[
@@ -364,13 +364,13 @@ async def test_apply_multiple_records_per_type(session: AsyncSession) -> None:
                 "goal_name": "Goal 1",
                 "goal_type": GoalType.EMERGENCY_FUND,
                 "target_amount": Decimal("10000.0000"),
-                "priority": 1,
+                "priority": "high",
             },
             {
                 "goal_name": "Goal 2",
                 "goal_type": GoalType.TRAVEL,
                 "target_amount": Decimal("3000.0000"),
-                "priority": 2,
+                "priority": "medium",
             },
         ],
         debts=[

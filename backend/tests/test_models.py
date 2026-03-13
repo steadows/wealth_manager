@@ -242,7 +242,7 @@ async def test_create_goal(session: AsyncSession) -> None:
         goal_type=GoalType.EMERGENCY_FUND,
         target_amount=Decimal("20000.0000"),
         current_amount=Decimal("5000.0000"),
-        priority=1,
+        priority="high",
         created_at=datetime.now(),
         updated_at=datetime.now(),
     )

@@ -27,7 +27,7 @@ class FinancialGoal(Base):
     current_amount: Mapped[Decimal] = mapped_column(default=Decimal(0))
     target_date: Mapped[datetime | None]
     monthly_contribution: Mapped[Decimal | None]
-    priority: Mapped[int]
+    priority: Mapped[str] = mapped_column(String(20))
     is_active: Mapped[bool] = mapped_column(default=True)
     notes: Mapped[str | None] = mapped_column(String(1000))
     created_at: Mapped[datetime] = mapped_column(default=_utc_now)

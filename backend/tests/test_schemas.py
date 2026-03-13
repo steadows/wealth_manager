@@ -188,7 +188,7 @@ class TestGoalSchemas:
             goal_name="Emergency Fund",
             goal_type="emergencyFund",
             target_amount=Decimal("20000.00"),
-            priority=1,
+            priority="high",
         )
         assert data.current_amount == Decimal("0")  # default
         assert data.is_active is True  # default
@@ -208,7 +208,7 @@ class TestGoalSchemas:
             goal_name="Travel",
             goal_type="travel",
             target_amount=Decimal("3000.00"),
-            priority=2,
+            priority="medium",
             notes="Summer vacation fund",
         )
         assert data.notes == "Summer vacation fund"
