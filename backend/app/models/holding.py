@@ -16,9 +16,7 @@ class InvestmentHolding(Base):
     __tablename__ = "investment_holdings"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    account_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("accounts.id", ondelete="CASCADE")
-    )
+    account_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"))
     security_name: Mapped[str] = mapped_column(String(255))
     ticker_symbol: Mapped[str | None] = mapped_column(String(20))
     quantity: Mapped[Decimal]

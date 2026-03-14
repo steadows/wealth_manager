@@ -16,12 +16,8 @@ class Transaction(Base):
     __tablename__ = "transactions"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    account_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("accounts.id", ondelete="CASCADE")
-    )
-    plaid_transaction_id: Mapped[str | None] = mapped_column(
-        String(255), unique=True, index=True
-    )
+    account_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"))
+    plaid_transaction_id: Mapped[str | None] = mapped_column(String(255), unique=True, index=True)
     amount: Mapped[Decimal]
     date: Mapped[datetime]
     merchant_name: Mapped[str | None] = mapped_column(String(255))
@@ -34,6 +30,4 @@ class Transaction(Base):
 
     account: Mapped["Account"] = relationship(back_populates="transactions")  # noqa: F821
 
-    __table_args__ = (
-        Index("ix_transactions_account_date", "account_id", "date"),
-    )
+    __table_args__ = (Index("ix_transactions_account_date", "account_id", "date"),)

@@ -130,6 +130,9 @@ struct PlanningView: View {
         .padding(20)
         .frame(minHeight: 200)
         .glassCard()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title). \(metricLabel)\(isEnabled ? "" : ", coming soon")")
+        .accessibilityHint(isEnabled ? "Double tap to explore" : "")
     }
 
     // MARK: - AI Insight

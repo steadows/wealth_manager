@@ -36,8 +36,10 @@ struct BudgetView: View {
                     .foregroundStyle(WMColors.textPrimary)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Previous month")
 
             GlassPill(text: viewModel.selectedMonthName, isSelected: true)
+                .accessibilityLabel("Selected month: \(viewModel.selectedMonthName)")
 
             Button {
                 Task { await viewModel.nextMonth() }
@@ -46,6 +48,7 @@ struct BudgetView: View {
                     .foregroundStyle(WMColors.textPrimary)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Next month")
         }
     }
 
@@ -110,6 +113,15 @@ struct BudgetView: View {
             }
         }
         .frame(height: 8)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Budget usage: \(Int(budgetUsagePercent))%\(viewModel.totalSpent > viewModel.totalIncome ? ", over budget" : "")")
+    }
+
+    /// Budget usage as a percentage for accessibility.
+    private var budgetUsagePercent: Double {
+        viewModel.totalIncome > 0
+            ? NSDecimalNumber(decimal: viewModel.totalSpent / viewModel.totalIncome * 100).doubleValue
+            : 0.0
     }
 
     // MARK: - AI Insight
@@ -192,6 +204,8 @@ struct BudgetView: View {
             color: isOver ? WMColors.negative.opacity(0.2) : Color.clear,
             radius: 8
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(summary.category.displayName) budget\(isOver ? ", over budget" : "")")
     }
 
     private func trendArrow(_ trend: BudgetCategorySummary.Trend) -> some View {
@@ -209,6 +223,15 @@ struct BudgetView: View {
             }
         }
         .font(.system(size: 14, weight: .medium))
+        .accessibilityLabel("Trend: \(trendDescription(trend))")
+    }
+
+    private func trendDescription(_ trend: BudgetCategorySummary.Trend) -> String {
+        switch trend {
+        case .up: "spending increasing"
+        case .down: "spending decreasing"
+        case .flat: "spending stable"
+        }
     }
 
     // MARK: - Chart Placeholder

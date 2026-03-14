@@ -61,6 +61,8 @@ struct CFOBriefingView: View {
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundStyle(WMColors.textPrimary)
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Financial health score: \(briefing.healthScore) out of 100")
             if let hs = viewModel.healthScore {
                 Text(hs.narrative)
                     .font(WMTypography.caption)

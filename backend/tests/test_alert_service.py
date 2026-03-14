@@ -3,7 +3,6 @@
 import uuid
 from datetime import UTC, datetime
 from decimal import Decimal
-from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -101,7 +100,9 @@ class TestAlertService:
         service = AlertService()
         # Net worth just crossed $250k
         snapshot = _make_snapshot(net_worth=Decimal("251000.00"))
-        alert = service._check_net_worth_milestone(snapshot, previous_net_worth=Decimal("249000.00"))
+        alert = service._check_net_worth_milestone(
+            snapshot, previous_net_worth=Decimal("249000.00")
+        )
 
         assert alert is not None
         assert alert.rule_name == "net_worth_milestone"
@@ -114,7 +115,9 @@ class TestAlertService:
 
         service = AlertService()
         snapshot = _make_snapshot(net_worth=Decimal("251000.00"))
-        alert = service._check_net_worth_milestone(snapshot, previous_net_worth=Decimal("250500.00"))
+        alert = service._check_net_worth_milestone(
+            snapshot, previous_net_worth=Decimal("250500.00")
+        )
 
         assert alert is None
 

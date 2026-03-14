@@ -286,7 +286,7 @@ P.4 Multi-institution: link 2+        rate limit, network timeout
 **Gate:** All Plaid flows work against live sandbox (not mocks). Claude API returns real responses. No regressions in existing 212+ tests.
 **Checkpoint end:** `/verify` + `/code-review` + `git commit`
 
-### [~] Sprint 9: Polish + iOS Port (2 weeks)
+### [x] Sprint 9: Polish + iOS Port (2 weeks)
 ```
 Lane A (macOS Polish)               Lane B (iOS Port)                 Lane C (Security + Launch)
 ──────────────────────              ──────────────                    ──────────────────────
@@ -1790,14 +1790,14 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
 **See sprint plan above for concurrency lanes**
 
 - [x] 6.1 **Push notifications** — Backend: Celery beat task runs weekly to generate briefings, sends APNs push. iOS: register for push, handle notification tap → navigate to briefing or alert.
-- [ ] 6.2 **iOS widgets** (WidgetKit) — 3 widgets: Net Worth (small, shows balance + change), Health Score (small, shows score ring), Next Milestone (medium, shows closest goal + progress)
+- [x] 6.2 **iOS widgets** (WidgetKit) — 3 widgets: Net Worth (small, shows balance + change), Health Score (small, shows score ring), Next Milestone (medium, shows closest goal + progress)
 - [x] 6.3 **Onboarding wizard** — Multi-step flow on first launch: Welcome → Profile setup (age, income, filing status) → Link first account (Plaid or manual) → Set first goal → Dashboard. Skip-able but encouraged. Stored `hasCompletedOnboarding` in UserDefaults.
 - [x] 6.4 **Biometric auth** — Face ID / Touch ID gate on app launch. Store access token in Keychain with biometric protection (`.biometryCurrentSet`). Fallback to passcode.
 - [x] 6.5 **Data export** — Export financial data as CSV (accounts, transactions, net worth history). Export CFO briefing as PDF (using UIGraphicsPDFRenderer). Share sheet integration.
-- [ ] 6.6 **Accessibility audit** — VoiceOver labels on all interactive elements. Dynamic Type support on all text. Sufficient color contrast. Chart descriptions for VoiceOver.
+- [x] 6.6 **Accessibility audit** — VoiceOver labels on all interactive elements. Dynamic Type support on all text. Sufficient color contrast. Chart descriptions for VoiceOver.
 - [x] 6.7 **Annual Review mode** — End-of-year comprehensive analysis: yearly net worth change, total income/spending, goal progress summary, top 5 spending categories, investment performance, tax summary, prioritized action list for next year. Generated via Claude with full-year data context.
-- [ ] 6.8 **Performance optimization** — Lazy loading for transaction lists (pagination). Background fetch for sync. Image caching for institution logos. SwiftData query optimization (fetch limits, batch sizes).
-- [ ] 6.9 **App Store assets** — Screenshots (macOS window screenshots), app description, keywords, privacy policy, App Store Connect metadata.
+- [x] 6.8 **Performance optimization** — Lazy loading for transaction lists (pagination). Background fetch for sync. Image caching for institution logos. SwiftData query optimization (fetch limits, batch sizes).
+- [N/A] 6.9 **App Store assets** — Skipped (personal use, not publishing to App Store).
 - [x] 6.10 **Security audit** — Use `security-review` skill: verify no hardcoded secrets, all API keys in env vars, Keychain for tokens, certificate pinning for API calls, Plaid access tokens encrypted at rest in backend, SQL injection prevention (parameterized queries), rate limiting on all endpoints.
 
 ### 6B — iOS Port (after macOS is stable)
@@ -1805,9 +1805,9 @@ Optional: Use `foundation-models-on-device` (Apple FoundationModels) for quick o
 - [x] 6.11 **Add iOS target** to Xcode project. Shared source files: Models/, Repositories/, ViewModels/, Services/, Calculators/, Extensions/. Platform-specific: Views/.
 - [x] 6.12 **Create iOS MainTabView.swift** — TabView replacing sidebar. Tabs: Dashboard, Accounts, Goals, Advisor, Profile.
 - [x] 6.13 **Adapt views for iOS** — Replace macOS Table with List, replace toolbar with navigation bar buttons, replace `.sheet()` sizing for iOS, replace right-click context menus with swipe actions.
-- [ ] 6.14 **Replace Plaid WKWebView with native Plaid Link iOS SDK** — Add LinkKit pod/SPM, use PlaidLinkHandler for native flow.
-- [ ] 6.15 **Add iOS widgets** (WidgetKit) — Net Worth (small), Health Score (small), Next Milestone (medium).
-- [ ] 6.16 **iOS-specific testing** — Run full test suite on iOS simulator, verify UI adapts correctly, test Plaid Link native flow.
+- [x] 6.14 **Replace Plaid WKWebView with native Plaid Link iOS SDK** — Add LinkKit pod/SPM, use PlaidLinkHandler for native flow.
+- [x] 6.15 **Add iOS widgets** (WidgetKit) — Net Worth (small), Health Score (small), Next Milestone (medium).
+- [>] 6.16 **iOS-specific testing** — Deferred to iPhone extension work.
 
 ---
 

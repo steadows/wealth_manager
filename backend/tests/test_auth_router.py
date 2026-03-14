@@ -40,9 +40,7 @@ async def auth_engine():
 @pytest.fixture
 async def auth_session(auth_engine) -> AsyncSession:
     """Yield a test database session."""
-    factory = async_sessionmaker(
-        bind=auth_engine, class_=AsyncSession, expire_on_commit=False
-    )
+    factory = async_sessionmaker(bind=auth_engine, class_=AsyncSession, expire_on_commit=False)
     async with factory() as sess:
         yield sess
 
@@ -53,9 +51,7 @@ async def auth_client(auth_engine):
 
     This lets us test actual JWT auth flow.
     """
-    factory = async_sessionmaker(
-        bind=auth_engine, class_=AsyncSession, expire_on_commit=False
-    )
+    factory = async_sessionmaker(bind=auth_engine, class_=AsyncSession, expire_on_commit=False)
 
     async def override_get_db():
         async with factory() as sess:
@@ -127,9 +123,7 @@ class TestLoginEndpoint:
         assert "access_token" in data
 
     @pytest.mark.anyio
-    async def test_login_invalid_token_returns_401(
-        self, auth_client: AsyncClient
-    ) -> None:
+    async def test_login_invalid_token_returns_401(self, auth_client: AsyncClient) -> None:
         """Login with an invalid identity token should return 401."""
         response = await auth_client.post(
             "/api/v1/auth/login",
@@ -157,9 +151,7 @@ class TestRefreshEndpoint:
         assert data["token_type"] == "bearer"
 
     @pytest.mark.anyio
-    async def test_refresh_without_token_returns_401(
-        self, auth_client: AsyncClient
-    ) -> None:
+    async def test_refresh_without_token_returns_401(self, auth_client: AsyncClient) -> None:
         """Refresh without an Authorization header should return 401."""
         response = await auth_client.post("/api/v1/auth/refresh")
         assert response.status_code == 401
@@ -169,9 +161,7 @@ class TestMeEndpoint:
     """Tests for GET /api/v1/auth/me."""
 
     @pytest.mark.anyio
-    async def test_me_with_valid_token(
-        self, auth_client: AsyncClient, seeded_user: User
-    ) -> None:
+    async def test_me_with_valid_token(self, auth_client: AsyncClient, seeded_user: User) -> None:
         """GET /me with valid JWT should return user info."""
         token = create_access_token(seeded_user.id)
         response = await auth_client.get(
@@ -184,9 +174,7 @@ class TestMeEndpoint:
         assert data["email"] == "test@example.com"
 
     @pytest.mark.anyio
-    async def test_me_without_token_returns_401(
-        self, auth_client: AsyncClient
-    ) -> None:
+    async def test_me_without_token_returns_401(self, auth_client: AsyncClient) -> None:
         """GET /me without auth should return 401."""
         response = await auth_client.get("/api/v1/auth/me")
         assert response.status_code == 401

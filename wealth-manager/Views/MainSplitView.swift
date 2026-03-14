@@ -121,7 +121,7 @@ struct MainSplitView: View {
         )
 
         // Advisory services (AI Advisor + Reports)
-        let backendURL = URL(string: "http://localhost:8000")!
+        let backendURL = AppEnvironment.backendBaseURL
         let tokenStore = KeychainTokenStore()
         let bootstrapProvider = StoredTokenProvider(store: tokenStore)
         let authClient = APIClient(baseURL: backendURL, tokenProvider: bootstrapProvider)
@@ -208,6 +208,7 @@ struct MainSplitView: View {
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(.white)
                 )
+                .accessibilityHidden(true)
 
             Text("Steve M.")
                 .font(WMTypography.body)
@@ -217,6 +218,8 @@ struct MainSplitView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("User: Steve M.")
     }
 
     // MARK: - Content Column

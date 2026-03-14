@@ -10,7 +10,6 @@ from app.schemas.advisory import (
     AccountSummary,
     DebtAnalysis,
     DebtSummary,
-    GoalSummary,
     RetirementAnalysis,
     TaxAnalysis,
     UserFinancialSnapshot,

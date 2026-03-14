@@ -76,9 +76,7 @@ class TestCreateGoal:
         await _seed_user(client)
         payload = _make_goal_payload()
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 201
         body = resp.json()
@@ -93,9 +91,7 @@ class TestCreateGoal:
         await _seed_user(client)
         payload = _make_goal_payload()
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 201
         goal_id = resp.json()["data"]["id"]
@@ -107,9 +103,7 @@ class TestCreateGoal:
         await _seed_user(client)
         payload = _make_goal_payload()
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 201
         assert resp.json()["data"]["user_id"] == str(TEST_USER_ID)
@@ -120,9 +114,7 @@ class TestCreateGoal:
         payload = _make_goal_payload()
         del payload["goal_name"]
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 422
 
@@ -131,9 +123,7 @@ class TestCreateGoal:
         await _seed_user(client)
         payload = _make_goal_payload(goal_name="")
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 422
 
@@ -143,9 +133,7 @@ class TestCreateGoal:
         payload = _make_goal_payload()
         del payload["target_amount"]
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 422
 
@@ -154,9 +142,7 @@ class TestCreateGoal:
         await _seed_user(client)
         payload = _make_goal_payload(target_amount="-100.00")
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 422
 
@@ -165,9 +151,7 @@ class TestCreateGoal:
         await _seed_user(client)
         payload = _make_goal_payload(target_amount="0.00")
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 422
 
@@ -176,9 +160,7 @@ class TestCreateGoal:
         await _seed_user(client)
         payload = _make_goal_payload(priority="invalid_priority")
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 422
 
@@ -187,9 +169,7 @@ class TestCreateGoal:
         await _seed_user(client)
         payload = _make_goal_payload(goal_type="notAGoalType")
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 422
 
@@ -199,9 +179,7 @@ class TestCreateGoal:
         payload = _make_goal_payload()
         del payload["priority"]
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 422
 
@@ -211,65 +189,47 @@ class TestCreateGoal:
         past_date = (datetime.now(UTC) - timedelta(days=30)).isoformat()
         payload = _make_goal_payload(target_date=past_date)
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 422
 
-    async def test_create_optional_target_date_defaults_none(
-        self, client: AsyncClient
-    ) -> None:
+    async def test_create_optional_target_date_defaults_none(self, client: AsyncClient) -> None:
         """target_date is optional and defaults to None."""
         await _seed_user(client)
         payload = _make_goal_payload()
         del payload["target_date"]
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 201
         assert resp.json()["data"]["target_date"] is None
 
-    async def test_create_defaults_current_amount_zero(
-        self, client: AsyncClient
-    ) -> None:
+    async def test_create_defaults_current_amount_zero(self, client: AsyncClient) -> None:
         """current_amount defaults to 0 when not provided."""
         await _seed_user(client)
         payload = _make_goal_payload()
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 201
         assert Decimal(resp.json()["data"]["current_amount"]) == Decimal("0")
 
-    async def test_create_defaults_is_active_true(
-        self, client: AsyncClient
-    ) -> None:
+    async def test_create_defaults_is_active_true(self, client: AsyncClient) -> None:
         """is_active defaults to True when not provided."""
         await _seed_user(client)
         payload = _make_goal_payload()
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 201
         assert resp.json()["data"]["is_active"] is True
 
-    async def test_create_response_has_timestamps(
-        self, client: AsyncClient
-    ) -> None:
+    async def test_create_response_has_timestamps(self, client: AsyncClient) -> None:
         """Created goal response includes created_at and updated_at."""
         await _seed_user(client)
         payload = _make_goal_payload()
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 201
         data = resp.json()["data"]
@@ -281,9 +241,7 @@ class TestCreateGoal:
         await _seed_user(client)
         payload = _make_goal_payload()
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 201
         data = resp.json()["data"]
@@ -309,16 +267,12 @@ class TestCreateGoal:
         await _seed_user(client)
         payload = _make_goal_payload(target_amount="123456.7891")
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 201
         assert Decimal(resp.json()["data"]["target_amount"]) == Decimal("123456.7891")
 
-    async def test_create_with_all_optional_fields(
-        self, client: AsyncClient
-    ) -> None:
+    async def test_create_with_all_optional_fields(self, client: AsyncClient) -> None:
         """Goal creation succeeds with all optional fields specified."""
         await _seed_user(client)
         payload = _make_goal_payload(
@@ -328,9 +282,7 @@ class TestCreateGoal:
             is_active=False,
         )
 
-        resp = await client.post(
-            "/api/v1/goals/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 201
         data = resp.json()["data"]
@@ -348,9 +300,7 @@ class TestCreateGoal:
                 priority=priority.value,
             )
 
-            resp = await client.post(
-                "/api/v1/goals/", json=payload, headers=_auth_headers()
-            )
+            resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
             assert resp.status_code == 201, f"Failed for priority={priority.value}"
             assert resp.json()["data"]["priority"] == priority.value

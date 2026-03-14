@@ -31,6 +31,15 @@ final class MockTransactionRepository: TransactionRepository {
         )
     }
 
+    func fetchByAccount(_ accountId: UUID, limit: Int, offset: Int) async throws -> [Transaction] {
+        let filtered = items
+            .filter { $0.account.id == accountId }
+            .sorted { $0.date > $1.date }
+        let start = min(offset, filtered.count)
+        let end = min(start + limit, filtered.count)
+        return Array(filtered[start..<end])
+    }
+
     func create(_ transaction: Transaction) async throws {
         items.append(transaction)
     }

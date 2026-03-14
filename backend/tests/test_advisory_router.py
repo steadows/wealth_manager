@@ -1,6 +1,5 @@
 """Tests for advisory router endpoints (4.8)."""
 
-import uuid
 from datetime import UTC, datetime
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
@@ -99,9 +98,7 @@ class TestAdvisoryRouter:
                 generated_at=datetime.now(UTC),
                 health_score=75,
                 summary="Good week.",
-                insights=[
-                    BriefingInsight(title="Test", detail="Detail", impact="positive")
-                ],
+                insights=[BriefingInsight(title="Test", detail="Detail", impact="positive")],
                 action_items=["Do something"],
                 goal_progress=[],
                 net_worth_change=Decimal("1500"),

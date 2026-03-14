@@ -186,9 +186,7 @@ async def test_get_sync_delta(client: AsyncClient) -> None:
     await _seed_user_and_data(client)
 
     cutoff = "2025-03-01T00:00:00+00:00"
-    resp = await client.get(
-        "/api/v1/sync/", params={"since": cutoff}, headers=_auth_headers()
-    )
+    resp = await client.get("/api/v1/sync/", params={"since": cutoff}, headers=_auth_headers())
     assert resp.status_code == 200
 
     body = resp.json()
@@ -207,9 +205,7 @@ async def test_get_sync_empty_delta(client: AsyncClient) -> None:
     await _seed_user_and_data(client)
 
     future = "2027-01-01T00:00:00+00:00"
-    resp = await client.get(
-        "/api/v1/sync/", params={"since": future}, headers=_auth_headers()
-    )
+    resp = await client.get("/api/v1/sync/", params={"since": future}, headers=_auth_headers())
     assert resp.status_code == 200
 
     data = resp.json()["data"]

@@ -14,6 +14,9 @@ struct AddAccountView: View {
     /// Optional Plaid link service for bank account linking.
     var plaidService: PlaidLinkServiceProtocol?
 
+    /// Optional Plaid link handler for native iOS link flow.
+    var plaidLinkHandler: PlaidLinkHandlerProtocol?
+
     // MARK: - State
 
     @State private var step: Step = .choose
@@ -264,11 +267,21 @@ struct AddAccountView: View {
                             step = .choose
                         }
                     )
-                    #else
-                    Text("Plaid Link is not yet available on iOS.")
-                        .font(WMTypography.body)
-                        .foregroundStyle(WMColors.textMuted)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    #elseif os(iOS)
+                    PlaidLinkiOSContentView(
+                        linkToken: vm.linkToken ?? "",
+                        handler: plaidLinkHandler,
+                        onResult: { result in
+                            Task {
+                                await vm.handleLinkResult(result)
+                                handlePlaidResult(vm)
+                            }
+                        },
+                        onExit: {
+                            vm.handleExit()
+                            step = .choose
+                        }
+                    )
                     #endif
                 } else if vm.state == .linked {
                     plaidSuccessView(accounts: vm.linkedAccounts)

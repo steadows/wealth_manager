@@ -21,7 +21,7 @@ final class APIClient: APIClientProtocol, @unchecked Sendable {
 
     init(
         baseURL: URL,
-        session: URLSession = .shared,
+        session: URLSession = CertificatePinningDelegate.shared.pinnedSession(),
         tokenProvider: TokenProvider
     ) {
         self.baseURL = baseURL

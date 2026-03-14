@@ -27,6 +27,8 @@ struct AIInsightCard: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .glassCard()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("AI Insight: \(message)")
     }
 }
 

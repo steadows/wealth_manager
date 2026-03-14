@@ -287,6 +287,7 @@ private struct GoalProgressRow: View {
                 Spacer()
                 Image(systemName: goal.onTrack ? "checkmark.circle.fill" : "xmark.circle.fill")
                     .foregroundStyle(goal.onTrack ? WMColors.positive : WMColors.negative)
+                    .accessibilityHidden(true)
             }
             ProgressView(value: NSDecimalNumber(decimal: goal.progressPercent).doubleValue)
                 .tint(goal.onTrack ? WMColors.positive : WMColors.secondary)
@@ -297,5 +298,7 @@ private struct GoalProgressRow: View {
         .padding(12)
         .background(WMColors.glassBg)
         .clipShape(RoundedRectangle(cornerRadius: 10))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(goal.name), \(goal.onTrack ? "on track" : "off track")")
     }
 }

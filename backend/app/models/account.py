@@ -47,9 +47,7 @@ class Account(Base):
         back_populates="account", cascade="all, delete-orphan"
     )
 
-    __table_args__ = (
-        Index("ix_accounts_user_type", "user_id", "account_type"),
-    )
+    __table_args__ = (Index("ix_accounts_user_type", "user_id", "account_type"),)
 
     @property
     def is_asset(self) -> bool:

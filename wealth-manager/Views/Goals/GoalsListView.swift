@@ -198,5 +198,6 @@ private struct GoalRowView: View {
             }
         }
         .font(.system(size: 16))
+        .accessibilityLabel(goal.isOnTrack ? "On track" : "Off track")
     }
 }

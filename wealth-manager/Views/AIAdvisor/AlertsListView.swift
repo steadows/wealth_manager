@@ -48,6 +48,7 @@ struct AlertsListView: View {
                     .padding(.vertical, 4)
                     .background(WMColors.negative)
                     .clipShape(Capsule())
+                    .accessibilityLabel("\(viewModel.alerts.count) alerts")
             }
         }
         .padding(.horizontal, 24)
@@ -110,6 +111,16 @@ private struct AlertRow: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(severityColor.opacity(0.4), lineWidth: 1)
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(severityDescription) alert: \(alert.title). \(alert.message)")
+    }
+
+    private var severityDescription: String {
+        switch alert.severity {
+        case .action: "Action required"
+        case .warning: "Warning"
+        case .info: "Informational"
+        }
     }
 
     private var severityBadge: some View {
@@ -117,6 +128,7 @@ private struct AlertRow: View {
             .font(.system(size: 20))
             .foregroundStyle(severityColor)
             .frame(width: 28)
+            .accessibilityHidden(true)
     }
 
     private var severityIcon: String {

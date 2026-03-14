@@ -11,6 +11,7 @@ struct CurrencyText: View {
         Text(formattedAmount)
             .font(font)
             .foregroundStyle(textColor)
+            .accessibilityLabel(formattedAmount)
     }
 
     // MARK: - Private

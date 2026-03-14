@@ -41,9 +41,7 @@ async def mw_engine():
 @pytest.fixture
 async def mw_session(mw_engine) -> AsyncSession:
     """Yield a test database session."""
-    factory = async_sessionmaker(
-        bind=mw_engine, class_=AsyncSession, expire_on_commit=False
-    )
+    factory = async_sessionmaker(bind=mw_engine, class_=AsyncSession, expire_on_commit=False)
     async with factory() as sess:
         yield sess
 
@@ -54,9 +52,7 @@ async def mw_client(mw_engine) -> AsyncClient:
 
     This tests the actual middleware auth flow end-to-end.
     """
-    factory = async_sessionmaker(
-        bind=mw_engine, class_=AsyncSession, expire_on_commit=False
-    )
+    factory = async_sessionmaker(bind=mw_engine, class_=AsyncSession, expire_on_commit=False)
 
     async def override_get_db():
         async with factory() as sess:
@@ -131,9 +127,7 @@ class TestProtectedRoutesMissingToken:
     """Verify that protected routes reject requests without tokens."""
 
     @pytest.mark.anyio
-    async def test_accounts_no_token_returns_401(
-        self, mw_client: AsyncClient
-    ) -> None:
+    async def test_accounts_no_token_returns_401(self, mw_client: AsyncClient) -> None:
         """GET /api/v1/accounts/ without Authorization header returns 401."""
         resp = await mw_client.get("/api/v1/accounts/")
         assert resp.status_code == 401
@@ -150,9 +144,7 @@ class TestProtectedRoutesInvalidToken:
     """Verify that protected routes reject invalid tokens."""
 
     @pytest.mark.anyio
-    async def test_malformed_token_returns_401(
-        self, mw_client: AsyncClient
-    ) -> None:
+    async def test_malformed_token_returns_401(self, mw_client: AsyncClient) -> None:
         """A non-JWT string as Bearer token returns 401."""
         resp = await mw_client.get(
             "/api/v1/accounts/",
@@ -161,9 +153,7 @@ class TestProtectedRoutesInvalidToken:
         assert resp.status_code == 401
 
     @pytest.mark.anyio
-    async def test_expired_token_returns_401(
-        self, mw_client: AsyncClient
-    ) -> None:
+    async def test_expired_token_returns_401(self, mw_client: AsyncClient) -> None:
         """An expired JWT returns 401."""
         payload = {
             "sub": str(TEST_USER_ID),
@@ -178,9 +168,7 @@ class TestProtectedRoutesInvalidToken:
         assert resp.status_code == 401
 
     @pytest.mark.anyio
-    async def test_wrong_secret_returns_401(
-        self, mw_client: AsyncClient
-    ) -> None:
+    async def test_wrong_secret_returns_401(self, mw_client: AsyncClient) -> None:
         """A JWT signed with a different secret returns 401."""
         payload = {
             "sub": str(TEST_USER_ID),
@@ -195,9 +183,7 @@ class TestProtectedRoutesInvalidToken:
         assert resp.status_code == 401
 
     @pytest.mark.anyio
-    async def test_bearer_prefix_required(
-        self, mw_client: AsyncClient
-    ) -> None:
+    async def test_bearer_prefix_required(self, mw_client: AsyncClient) -> None:
         """Authorization header without 'Bearer ' prefix returns 401."""
         token = create_access_token(TEST_USER_ID)
         resp = await mw_client.get(
@@ -207,9 +193,7 @@ class TestProtectedRoutesInvalidToken:
         assert resp.status_code == 401
 
     @pytest.mark.anyio
-    async def test_empty_bearer_returns_401(
-        self, mw_client: AsyncClient
-    ) -> None:
+    async def test_empty_bearer_returns_401(self, mw_client: AsyncClient) -> None:
         """Authorization header with 'Bearer ' but no token returns 401."""
         resp = await mw_client.get(
             "/api/v1/accounts/",

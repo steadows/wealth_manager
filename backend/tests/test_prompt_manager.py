@@ -177,7 +177,7 @@ class TestPromptManager:
 
         pm = PromptManager(PROMPTS_DIR)
 
-        with pytest.raises(Exception):
+        with pytest.raises(Exception):  # noqa: B017
             pm.render_prompt("nonexistent.jinja2", {})
 
     async def test_load_system_prompt_reads_file(self):

@@ -93,26 +93,20 @@ class AlertService:
         alerts.extend(debt_alerts)
 
         # Tax harvesting
-        has_investments = any(
-            a.account_type == "investment" for a in snapshot.accounts
-        )
+        has_investments = any(a.account_type == "investment" for a in snapshot.accounts)
         th_alert = self._check_tax_harvesting_season(current_month, has_investments)
         if th_alert:
             alerts.append(th_alert)
 
         return alerts
 
-    def _check_emergency_fund_low(
-        self, snapshot: UserFinancialSnapshot
-    ) -> ProactiveAlert | None:
+    def _check_emergency_fund_low(self, snapshot: UserFinancialSnapshot) -> ProactiveAlert | None:
         """Alert if liquid savings < 3 months of expenses."""
         if snapshot.monthly_expenses is None or snapshot.monthly_expenses <= 0:
             return None
 
         liquid = sum(
-            a.current_balance
-            for a in snapshot.accounts
-            if a.account_type in _LIQUID_ACCOUNT_TYPES
+            a.current_balance for a in snapshot.accounts if a.account_type in _LIQUID_ACCOUNT_TYPES
         )
         months_covered = liquid / snapshot.monthly_expenses
 
@@ -148,9 +142,7 @@ class AlertService:
                 )
         return None
 
-    def _check_goal_off_track(
-        self, snapshot: UserFinancialSnapshot
-    ) -> list[ProactiveAlert]:
+    def _check_goal_off_track(self, snapshot: UserFinancialSnapshot) -> list[ProactiveAlert]:
         """Alert for goals projected to miss their target date."""
         alerts: list[ProactiveAlert] = []
         now = datetime.now(UTC)
@@ -163,8 +155,7 @@ class AlertService:
 
             remaining = goal.target_amount - goal.current_amount
             months_left = max(
-                (goal.target_date.year - now.year) * 12
-                + (goal.target_date.month - now.month),
+                (goal.target_date.year - now.year) * 12 + (goal.target_date.month - now.month),
                 1,
             )
 

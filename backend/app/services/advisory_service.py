@@ -45,9 +45,7 @@ class AdvisoryService:
         """Generate a structured retirement analysis."""
         context = self._prompts.build_financial_context(snapshot)
         system_prompt = self._prompts.load_system_prompt("financial_advisor")
-        user_message = (
-            f"Analyze my retirement readiness based on this data:\n{context}"
-        )
+        user_message = f"Analyze my retirement readiness based on this data:\n{context}"
 
         return await self._claude.structured_generate(
             system_prompt=system_prompt,
@@ -63,9 +61,7 @@ class AdvisoryService:
         """Generate a structured tax analysis."""
         context = self._prompts.build_financial_context(snapshot)
         system_prompt = self._prompts.load_system_prompt("tax_advisor")
-        user_message = (
-            f"Analyze my tax optimization opportunities:\n{context}"
-        )
+        user_message = f"Analyze my tax optimization opportunities:\n{context}"
 
         return await self._claude.structured_generate(
             system_prompt=system_prompt,
@@ -81,9 +77,7 @@ class AdvisoryService:
         """Generate a structured debt strategy analysis."""
         context = self._prompts.build_financial_context(snapshot)
         system_prompt = self._prompts.load_system_prompt("debt_strategist")
-        user_message = (
-            f"Analyze my debt situation and recommend a strategy:\n{context}"
-        )
+        user_message = f"Analyze my debt situation and recommend a strategy:\n{context}"
 
         return await self._claude.structured_generate(
             system_prompt=system_prompt,

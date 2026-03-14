@@ -85,6 +85,8 @@ struct AdvisorChatView: View {
             .disabled(viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                       || viewModel.isLoading)
             .buttonStyle(.plain)
+            .accessibilityLabel("Send message")
+            .accessibilityHint("Double tap to send your message to the AI advisor")
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -116,5 +118,7 @@ private struct ChatBubble: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16))
             if !isUser { Spacer(minLength: 48) }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(isUser ? "You" : "Advisor"): \(message.content)")
     }
 }

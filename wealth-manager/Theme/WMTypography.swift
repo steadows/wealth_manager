@@ -11,7 +11,19 @@ enum WMTypography {
 
     // MARK: - Private Helpers
 
+    /// Maps font sizes to semantic Dynamic Type text styles for scaling.
+    private static func textStyle(for size: CGFloat) -> Font.TextStyle {
+        switch size {
+        case 48...: return .largeTitle
+        case 20..<48: return .title3
+        case 16..<20: return .body
+        case 14..<16: return .subheadline
+        default: return .caption
+        }
+    }
+
     /// Returns Inter font if available, otherwise falls back to system design.
+    /// All fonts scale with Dynamic Type via `relativeTo`.
     private static func font(size: CGFloat, weight: Font.Weight) -> Font {
         let interName: String = switch weight {
         case .thin: "Inter-Thin"
@@ -25,6 +37,8 @@ enum WMTypography {
         default: "Inter-Regular"
         }
 
+        let style = textStyle(for: size)
+
         // Attempt to load Inter; fall back to system font.
         #if canImport(AppKit)
         let fontAvailable = NSFont(name: interName, size: size) != nil
@@ -35,7 +49,7 @@ enum WMTypography {
         #endif
 
         if fontAvailable {
-            return .custom(interName, size: size)
+            return .custom(interName, size: size, relativeTo: style)
         }
         return .system(size: size, weight: weight)
     }

@@ -118,10 +118,12 @@ struct GoalDetailView: View {
             if goal.isOnTrack {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(WMColors.positive)
+                    .accessibilityHidden(true)
                 Text("On Track")
             } else {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundStyle(Color.yellow)
+                    .accessibilityHidden(true)
                 Text("Off Track")
             }
         }
@@ -135,6 +137,8 @@ struct GoalDetailView: View {
                 : Color.yellow.opacity(0.15)
         )
         .clipShape(Capsule())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Status: \(goal.isOnTrack ? "On Track" : "Off Track")")
     }
 
     private func amountRow(label: String, amount: Decimal) -> some View {

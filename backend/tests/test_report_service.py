@@ -1,9 +1,8 @@
 """Tests for report service — CFO briefing generation (4.6)."""
 
 import uuid
-from datetime import UTC, datetime
 from decimal import Decimal
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -12,7 +11,6 @@ from app.schemas.advisory import (
     BriefingInsight,
     BriefingPeriod,
     BriefingSchema,
-    DebtSummary,
     GoalSummary,
     UserFinancialSnapshot,
 )
@@ -136,7 +134,7 @@ class TestReportService:
 
         mock_claude = AsyncMock()
         mock_claude.generate = AsyncMock(
-            return_value="Your financial health is good. Strong savings rate offsets moderate debt."
+            return_value="Your financial health is good. Strong savings rate."
         )
 
         mock_prompt_manager = MagicMock()

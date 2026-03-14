@@ -75,6 +75,7 @@ struct AccountDetailView: View {
             .padding(.vertical, 4)
             .background(WMColors.primary.opacity(0.15))
             .clipShape(Capsule())
+            .accessibilityLabel("Account type: \(viewModel.account.accountType.displayName)")
     }
 
     // MARK: - Tab Picker
@@ -161,6 +162,9 @@ struct AccountDetailView: View {
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Filter: \(label)")
+        .accessibilityValue(isSelected ? "Selected" : "Not selected")
+        .accessibilityHint("Double tap to filter transactions by \(label)")
     }
 
     private var transactionsTable: some View {
@@ -224,33 +228,66 @@ struct AccountDetailView: View {
                 .width(min: 80, ideal: 110)
             }
             .tableStyle(.inset(alternatesRowBackgrounds: true))
+
+            if viewModel.hasMorePages {
+                loadMoreButton
+            }
             #else
-            List(sortedTransactions, id: \.id) { txn in
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(txn.merchantDisplayName)
-                            .foregroundStyle(WMColors.textPrimary)
-                            .lineLimit(1)
-                        Text(txn.date, format: .dateTime.month(.abbreviated).day())
-                            .font(.caption)
-                            .foregroundStyle(WMColors.textMuted)
-                    }
+            List {
+                ForEach(sortedTransactions, id: \.id) { txn in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(txn.merchantDisplayName)
+                                .foregroundStyle(WMColors.textPrimary)
+                                .lineLimit(1)
+                            Text(txn.date, format: .dateTime.month(.abbreviated).day())
+                                .font(.caption)
+                                .foregroundStyle(WMColors.textMuted)
+                        }
 
-                    Spacer()
+                        Spacer()
 
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text(formattedCurrency(txn.amount))
-                            .foregroundStyle(txn.amount >= 0 ? WMColors.positive : WMColors.negative)
-                            .monospacedDigit()
-                        Text(txn.category.displayName)
-                            .font(.caption)
-                            .foregroundStyle(WMColors.primary)
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text(formattedCurrency(txn.amount))
+                                .foregroundStyle(txn.amount >= 0 ? WMColors.positive : WMColors.negative)
+                                .monospacedDigit()
+                            Text(txn.category.displayName)
+                                .font(.caption)
+                                .foregroundStyle(WMColors.primary)
+                        }
                     }
+                }
+
+                if viewModel.hasMorePages {
+                    loadMoreButton
                 }
             }
             .listStyle(.plain)
             #endif
         }
+    }
+
+    /// Button shown at the bottom of the transaction list to load more items.
+    private var loadMoreButton: some View {
+        Button {
+            Task { await viewModel.loadMoreTransactions() }
+        } label: {
+            HStack {
+                Spacer()
+                if viewModel.isLoading {
+                    ProgressView()
+                        .controlSize(.small)
+                } else {
+                    Text("Load More")
+                        .font(WMTypography.body)
+                        .foregroundStyle(WMColors.primary)
+                }
+                Spacer()
+            }
+            .padding(.vertical, 8)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Load more transactions")
     }
 
     /// Transactions sorted according to the current table sort order.
@@ -265,11 +302,14 @@ struct AccountDetailView: View {
             Image(systemName: "chart.pie")
                 .font(.system(size: 48))
                 .foregroundStyle(WMColors.textMuted)
+                .accessibilityHidden(true)
             Text("Spending breakdown coming in Sprint 3")
                 .font(.title3)
                 .foregroundStyle(WMColors.textMuted)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Analytics: Spending breakdown coming soon")
     }
 
     // MARK: - Helpers

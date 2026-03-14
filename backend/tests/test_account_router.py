@@ -60,11 +60,13 @@ async def _seed_user_and_accounts(client: AsyncClient) -> list[uuid.UUID]:
         session.add(user)
         await session.flush()
 
-        for _i, (name, atype, balance) in enumerate([
-            ("Checking", AccountType.CHECKING, Decimal("5000.0000")),
-            ("Savings", AccountType.SAVINGS, Decimal("10000.0000")),
-            ("Credit Card", AccountType.CREDIT_CARD, Decimal("2500.0000")),
-        ]):
+        for _i, (name, atype, balance) in enumerate(
+            [
+                ("Checking", AccountType.CHECKING, Decimal("5000.0000")),
+                ("Savings", AccountType.SAVINGS, Decimal("10000.0000")),
+                ("Credit Card", AccountType.CREDIT_CARD, Decimal("2500.0000")),
+            ]
+        ):
             acct_id = uuid.uuid4()
             ids.append(acct_id)
             account = Account(
@@ -183,9 +185,7 @@ class TestGetAccount:
     async def test_get_existing(self, client: AsyncClient) -> None:
         """Returns account data when it exists and belongs to the user."""
         ids = await _seed_user_and_accounts(client)
-        resp = await client.get(
-            f"/api/v1/accounts/{ids[0]}", headers=_auth_headers()
-        )
+        resp = await client.get(f"/api/v1/accounts/{ids[0]}", headers=_auth_headers())
         assert resp.status_code == 200
         body = resp.json()
         assert body["success"] is True
@@ -197,9 +197,7 @@ class TestGetAccount:
         """Returns 404 for a nonexistent account ID."""
         await _seed_user(client)
         fake_id = uuid.uuid4()
-        resp = await client.get(
-            f"/api/v1/accounts/{fake_id}", headers=_auth_headers()
-        )
+        resp = await client.get(f"/api/v1/accounts/{fake_id}", headers=_auth_headers())
         assert resp.status_code == 404
 
     @pytest.mark.asyncio
@@ -207,23 +205,28 @@ class TestGetAccount:
         """Returns 404 when requesting another user's account."""
         await _seed_user(client)
         other_acct_id = await _seed_other_user_account(client)
-        resp = await client.get(
-            f"/api/v1/accounts/{other_acct_id}", headers=_auth_headers()
-        )
+        resp = await client.get(f"/api/v1/accounts/{other_acct_id}", headers=_auth_headers())
         assert resp.status_code == 404
 
     @pytest.mark.asyncio
     async def test_get_response_fields(self, client: AsyncClient) -> None:
         """Response contains all expected fields."""
         ids = await _seed_user_and_accounts(client)
-        resp = await client.get(
-            f"/api/v1/accounts/{ids[0]}", headers=_auth_headers()
-        )
+        resp = await client.get(f"/api/v1/accounts/{ids[0]}", headers=_auth_headers())
         data = resp.json()["data"]
         expected_fields = {
-            "id", "institution_name", "account_name", "account_type",
-            "current_balance", "available_balance", "currency", "is_manual",
-            "is_hidden", "last_synced_at", "created_at", "updated_at",
+            "id",
+            "institution_name",
+            "account_name",
+            "account_type",
+            "current_balance",
+            "available_balance",
+            "currency",
+            "is_manual",
+            "is_hidden",
+            "last_synced_at",
+            "created_at",
+            "updated_at",
             "plaid_account_id",
         }
         assert expected_fields.issubset(set(data.keys()))
@@ -243,9 +246,7 @@ class TestCreateAccount:
             "current_balance": "3500.00",
             "is_manual": True,
         }
-        resp = await client.post(
-            "/api/v1/accounts/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/accounts/", json=payload, headers=_auth_headers())
         assert resp.status_code == 201
         body = resp.json()
         assert body["success"] is True
@@ -266,9 +267,7 @@ class TestCreateAccount:
             "currency": "EUR",
             "is_manual": False,
         }
-        resp = await client.post(
-            "/api/v1/accounts/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/accounts/", json=payload, headers=_auth_headers())
         assert resp.status_code == 201
         data = resp.json()["data"]
         assert Decimal(data["available_balance"]) == Decimal("9500.00")
@@ -297,9 +296,7 @@ class TestCreateAccount:
             "current_balance": "1000.00",
             "is_manual": True,
         }
-        resp = await client.post(
-            "/api/v1/accounts/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/accounts/", json=payload, headers=_auth_headers())
         assert resp.status_code == 422
 
     @pytest.mark.asyncio
@@ -313,13 +310,9 @@ class TestCreateAccount:
             "current_balance": "777.00",
             "is_manual": True,
         }
-        create_resp = await client.post(
-            "/api/v1/accounts/", json=payload, headers=_auth_headers()
-        )
+        create_resp = await client.post("/api/v1/accounts/", json=payload, headers=_auth_headers())
         acct_id = create_resp.json()["data"]["id"]
-        get_resp = await client.get(
-            f"/api/v1/accounts/{acct_id}", headers=_auth_headers()
-        )
+        get_resp = await client.get(f"/api/v1/accounts/{acct_id}", headers=_auth_headers())
         assert get_resp.status_code == 200
         assert get_resp.json()["data"]["account_name"] == "Persist Checking"
 
@@ -334,9 +327,7 @@ class TestCreateAccount:
             "current_balance": "-250.00",
             "is_manual": True,
         }
-        resp = await client.post(
-            "/api/v1/accounts/", json=payload, headers=_auth_headers()
-        )
+        resp = await client.post("/api/v1/accounts/", json=payload, headers=_auth_headers())
         assert resp.status_code == 201
         assert Decimal(resp.json()["data"]["current_balance"]) == Decimal("-250.00")
 
@@ -414,21 +405,15 @@ class TestDeleteAccount:
     async def test_delete_existing(self, client: AsyncClient) -> None:
         """Deleting an existing account returns 204."""
         ids = await _seed_user_and_accounts(client)
-        resp = await client.delete(
-            f"/api/v1/accounts/{ids[0]}", headers=_auth_headers()
-        )
+        resp = await client.delete(f"/api/v1/accounts/{ids[0]}", headers=_auth_headers())
         assert resp.status_code == 204
 
     @pytest.mark.asyncio
     async def test_delete_removes_from_db(self, client: AsyncClient) -> None:
         """Deleted account is no longer retrievable."""
         ids = await _seed_user_and_accounts(client)
-        await client.delete(
-            f"/api/v1/accounts/{ids[0]}", headers=_auth_headers()
-        )
-        get_resp = await client.get(
-            f"/api/v1/accounts/{ids[0]}", headers=_auth_headers()
-        )
+        await client.delete(f"/api/v1/accounts/{ids[0]}", headers=_auth_headers())
+        get_resp = await client.get(f"/api/v1/accounts/{ids[0]}", headers=_auth_headers())
         assert get_resp.status_code == 404
 
     @pytest.mark.asyncio
@@ -436,9 +421,7 @@ class TestDeleteAccount:
         """Deleting a nonexistent account returns 404."""
         await _seed_user(client)
         fake_id = uuid.uuid4()
-        resp = await client.delete(
-            f"/api/v1/accounts/{fake_id}", headers=_auth_headers()
-        )
+        resp = await client.delete(f"/api/v1/accounts/{fake_id}", headers=_auth_headers())
         assert resp.status_code == 404
 
     @pytest.mark.asyncio
@@ -446,17 +429,13 @@ class TestDeleteAccount:
         """Cannot delete another user's account (404)."""
         await _seed_user(client)
         other_id = await _seed_other_user_account(client)
-        resp = await client.delete(
-            f"/api/v1/accounts/{other_id}", headers=_auth_headers()
-        )
+        resp = await client.delete(f"/api/v1/accounts/{other_id}", headers=_auth_headers())
         assert resp.status_code == 404
 
     @pytest.mark.asyncio
     async def test_delete_reduces_count(self, client: AsyncClient) -> None:
         """After deletion, account list count decreases by one."""
         ids = await _seed_user_and_accounts(client)
-        await client.delete(
-            f"/api/v1/accounts/{ids[0]}", headers=_auth_headers()
-        )
+        await client.delete(f"/api/v1/accounts/{ids[0]}", headers=_auth_headers())
         resp = await client.get("/api/v1/accounts/", headers=_auth_headers())
         assert len(resp.json()["data"]) == 2

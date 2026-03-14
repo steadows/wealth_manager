@@ -110,6 +110,8 @@ struct WhatIfView: View {
                 }
             }
             .frame(height: 300)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("What-if scenario comparison chart showing baseline versus adjusted net worth projection")
         }
         .padding(24)
         .glassCard()
@@ -183,9 +185,12 @@ struct WhatIfView: View {
                 HStack(spacing: 8) {
                     Image(systemName: isPositive ? "arrow.up.right.circle.fill" : "arrow.down.right.circle.fill")
                         .font(.title2)
+                        .accessibilityHidden(true)
                     CurrencyText(amount: abs(vm.impactAmount), font: WMTypography.heading)
                 }
                 .foregroundStyle(isPositive ? WMColors.positive : WMColors.negative)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Impact: \(isPositive ? "positive" : "negative")")
 
                 HStack(spacing: 24) {
                     VStack(spacing: 4) {

@@ -139,6 +139,8 @@ struct AccountsListView: View {
                 .foregroundStyle(balanceColor(for: account))
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(account.accountName) at \(account.institutionName), balance \(formattedCurrency(account.currentBalance))")
     }
 
     private func institutionIcon(for account: Account) -> some View {
@@ -150,6 +152,7 @@ struct AccountsListView: View {
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(WMColors.primary)
         }
+        .accessibilityHidden(true)
     }
 
     @ViewBuilder

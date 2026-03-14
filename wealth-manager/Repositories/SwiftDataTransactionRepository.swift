@@ -53,6 +53,16 @@ actor SwiftDataTransactionRepository: TransactionRepository {
         return try modelContext.fetch(descriptor)
     }
 
+    func fetchByAccount(_ accountId: UUID, limit: Int, offset: Int) async throws -> [Transaction] {
+        var descriptor = FetchDescriptor<Transaction>(
+            predicate: #Predicate { $0.account.id == accountId },
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        descriptor.fetchLimit = limit
+        descriptor.fetchOffset = offset
+        return try modelContext.fetch(descriptor)
+    }
+
     func create(_ transaction: Transaction) async throws {
         modelContext.insert(transaction)
         try modelContext.save()

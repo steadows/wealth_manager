@@ -47,9 +47,7 @@ async def plaid_engine():
 @pytest.fixture
 async def plaid_session(plaid_engine) -> AsyncSession:
     """Yield a test database session."""
-    factory = async_sessionmaker(
-        bind=plaid_engine, class_=AsyncSession, expire_on_commit=False
-    )
+    factory = async_sessionmaker(bind=plaid_engine, class_=AsyncSession, expire_on_commit=False)
     async with factory() as sess:
         yield sess
 
@@ -61,13 +59,9 @@ def mock_plaid_service() -> MagicMock:
 
 
 @pytest.fixture
-async def plaid_client(
-    plaid_engine, mock_plaid_service: MagicMock
-) -> AsyncClient:
+async def plaid_client(plaid_engine, mock_plaid_service: MagicMock) -> AsyncClient:
     """Yield an httpx AsyncClient with mocked Plaid service dependency."""
-    factory = async_sessionmaker(
-        bind=plaid_engine, class_=AsyncSession, expire_on_commit=False
-    )
+    factory = async_sessionmaker(bind=plaid_engine, class_=AsyncSession, expire_on_commit=False)
 
     async def override_get_db():
         async with factory() as sess:
@@ -104,9 +98,7 @@ class TestLinkTokenEndpoint:
         """Should return a Plaid link token."""
         mock_plaid_service.create_link_token.return_value = "link-sandbox-test"
 
-        response = await plaid_client.post(
-            "/api/v1/plaid/link-token", headers=auth_headers
-        )
+        response = await plaid_client.post("/api/v1/plaid/link-token", headers=auth_headers)
         assert response.status_code == 200
         data = response.json()
         assert data["link_token"] == "link-sandbox-test"

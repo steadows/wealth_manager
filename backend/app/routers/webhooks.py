@@ -50,11 +50,14 @@ async def plaid_webhook(
                     account.plaid_access_token,
                     cursor=account.plaid_cursor,
                 )
-                await repo.update(account, {
-                    "plaid_cursor": result["next_cursor"],
-                    "last_synced_at": datetime.now(UTC),
-                    "updated_at": datetime.now(UTC),
-                })
+                await repo.update(
+                    account,
+                    {
+                        "plaid_cursor": result["next_cursor"],
+                        "last_synced_at": datetime.now(UTC),
+                        "updated_at": datetime.now(UTC),
+                    },
+                )
                 synced_count += 1
 
         return {"status": "synced", "accounts_synced": synced_count}

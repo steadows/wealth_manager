@@ -41,9 +41,7 @@ def claude_service() -> ClaudeService:
 class TestClaudeGenerate:
     """Verify that generate() returns real content from the API."""
 
-    async def test_generate_returns_nonempty_response(
-        self, claude_service: ClaudeService
-    ) -> None:
+    async def test_generate_returns_nonempty_response(self, claude_service: ClaudeService) -> None:
         """Call generate() with a simple financial question and assert meaningful content."""
         response = await claude_service.generate(
             system_prompt=SYSTEM_PROMPT,
@@ -100,9 +98,7 @@ class TestClaudeStructured:
 class TestClaudeStreaming:
     """Verify that stream() yields multiple text chunks."""
 
-    async def test_stream_yields_multiple_chunks(
-        self, claude_service: ClaudeService
-    ) -> None:
+    async def test_stream_yields_multiple_chunks(self, claude_service: ClaudeService) -> None:
         """Collect streamed chunks and assert we got real, multi-chunk output."""
         chunks: list[str] = []
         async for chunk in claude_service.stream(
@@ -112,9 +108,7 @@ class TestClaudeStreaming:
         ):
             chunks.append(chunk)
 
-        assert len(chunks) >= 3, (
-            f"Expected at least 3 streamed chunks, got {len(chunks)}"
-        )
+        assert len(chunks) >= 3, f"Expected at least 3 streamed chunks, got {len(chunks)}"
 
         full_text = "".join(chunks)
         assert len(full_text) > 50, (

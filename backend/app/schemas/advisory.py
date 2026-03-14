@@ -7,7 +7,6 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
-
 # ── Enums ──
 
 

@@ -23,9 +23,7 @@ class NetWorthSnapshot(Base):
 
     user: Mapped["User"] = relationship(back_populates="snapshots")  # noqa: F821
 
-    __table_args__ = (
-        Index("ix_net_worth_snapshots_user_date", "user_id", "date"),
-    )
+    __table_args__ = (Index("ix_net_worth_snapshots_user_date", "user_id", "date"),)
 
     @property
     def net_worth(self) -> Decimal:

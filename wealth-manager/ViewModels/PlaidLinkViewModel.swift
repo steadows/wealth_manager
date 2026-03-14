@@ -82,6 +82,26 @@ final class PlaidLinkViewModel {
         state = .idle
     }
 
+    /// Called when a Plaid Link handler encounters an error.
+    func handleLinkError(_ error: Error) {
+        showWebView = false
+        self.error = error.localizedDescription
+        state = .error
+    }
+
+    /// Handles a `PlaidLinkResult` from a `PlaidLinkHandlerProtocol`.
+    /// Dispatches to the appropriate handler method based on the result type.
+    func handleLinkResult(_ result: PlaidLinkResult) async {
+        switch result {
+        case .success(let publicToken, _):
+            await handlePublicToken(publicToken)
+        case .exit:
+            handleExit()
+        case .failure(let error):
+            handleLinkError(error)
+        }
+    }
+
     /// Resets all state back to idle.
     func reset() {
         state = .idle

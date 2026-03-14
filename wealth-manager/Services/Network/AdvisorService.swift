@@ -9,50 +9,33 @@ final class AdvisorService: AdvisoryServiceProtocol {
     private let baseURL: URL
     private let tokenProvider: TokenProvider
 
-    /// Dedicated URLSession for SSE streams with a bounded resource timeout.
-    private let streamSession: URLSession = {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 30
-        config.timeoutIntervalForResource = 90
-        return URLSession(configuration: config)
-    }()
+    /// Cached pinned URLSession for SSE streaming, avoiding per-request allocation.
+    private let pinnedSession: URLSession
 
     init(apiClient: APIClientProtocol, baseURL: URL, tokenProvider: TokenProvider) {
         self.apiClient = apiClient
         self.baseURL = baseURL
         self.tokenProvider = tokenProvider
+        self.pinnedSession = CertificatePinningDelegate.shared.pinnedSession(
+            timeoutForRequest: 30,
+            timeoutForResource: 90
+        )
     }
 
     // MARK: - Streaming Chat
 
     /// Streams chat response chunks via Server-Sent Events.
+    /// Handles 401 by refreshing the token and retrying once.
     func streamChat(message: String, conversationId: UUID?) -> AsyncThrowingStream<String, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
-                    let urlRequest = try await self.makeChatRequest(
+                    try await self.executeStream(
                         message: message,
-                        conversationId: conversationId
+                        conversationId: conversationId,
+                        continuation: continuation,
+                        isRetry: false
                     )
-                    let (bytes, response) = try await self.streamSession.bytes(for: urlRequest)
-
-                    guard let httpResponse = response as? HTTPURLResponse else {
-                        throw APIError.serverError(statusCode: 500, message: "Stream failed")
-                    }
-                    guard (200...299).contains(httpResponse.statusCode) else {
-                        throw APIError.serverError(
-                            statusCode: httpResponse.statusCode,
-                            message: "Stream failed with status \(httpResponse.statusCode)"
-                        )
-                    }
-
-                    for try await line in bytes.lines {
-                        try Task.checkCancellation()
-                        if let chunk = self.parseSSELine(line) {
-                            continuation.yield(chunk)
-                        }
-                    }
-                    continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)
                 }
@@ -60,6 +43,51 @@ final class AdvisorService: AdvisoryServiceProtocol {
             // Cancel the inner Task when the stream consumer stops iterating.
             continuation.onTermination = { _ in task.cancel() }
         }
+    }
+
+    /// Executes the SSE stream, retrying once on 401 after refreshing the token.
+    private func executeStream(
+        message: String,
+        conversationId: UUID?,
+        continuation: AsyncThrowingStream<String, Error>.Continuation,
+        isRetry: Bool
+    ) async throws {
+        let urlRequest = try await makeChatRequest(
+            message: message,
+            conversationId: conversationId
+        )
+        let (bytes, response) = try await pinnedSession.bytes(for: urlRequest)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.serverError(statusCode: 500, message: "Stream failed")
+        }
+
+        // Handle 401: refresh token and retry once
+        if httpResponse.statusCode == 401, !isRetry {
+            _ = try await tokenProvider.refreshAccessToken()
+            try await executeStream(
+                message: message,
+                conversationId: conversationId,
+                continuation: continuation,
+                isRetry: true
+            )
+            return
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            throw APIError.serverError(
+                statusCode: httpResponse.statusCode,
+                message: "Stream failed with status \(httpResponse.statusCode)"
+            )
+        }
+
+        for try await line in bytes.lines {
+            try Task.checkCancellation()
+            if let chunk = parseSSELine(line) {
+                continuation.yield(chunk)
+            }
+        }
+        continuation.finish()
     }
 
     // MARK: - JSON Endpoints
@@ -86,9 +114,11 @@ final class AdvisorService: AdvisoryServiceProtocol {
         let endpoint = Endpoint.advisorChat(message: message, conversationId: conversationId)
         var request = try endpoint.makeURLRequest(baseURL: baseURL)
 
-        if let token = await tokenProvider.currentAccessToken() {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        // SSE streams MUST be authenticated — fail fast if no token
+        guard let token = await tokenProvider.currentAccessToken() else {
+            throw APIError.unauthorized
         }
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
 
         return request

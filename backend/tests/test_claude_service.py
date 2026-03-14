@@ -1,12 +1,9 @@
 """Tests for Claude API service wrapper (4.1)."""
 
-import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pydantic import BaseModel
-
-from app.schemas.advisory import RetirementAnalysis
 
 
 class SimpleResponse(BaseModel):

@@ -152,11 +152,14 @@ async def sync_account(
     )
 
     # Update cursor on the account
-    await repo.update(account, {
-        "plaid_cursor": result["next_cursor"],
-        "last_synced_at": datetime.now(UTC),
-        "updated_at": datetime.now(UTC),
-    })
+    await repo.update(
+        account,
+        {
+            "plaid_cursor": result["next_cursor"],
+            "last_synced_at": datetime.now(UTC),
+            "updated_at": datetime.now(UTC),
+        },
+    )
 
     return {
         "added_count": len(result["added"]),

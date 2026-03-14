@@ -101,7 +101,7 @@ struct MainTabView: View {
         )
 
         // Advisory services (AI Advisor + Reports)
-        let backendURL = URL(string: "http://localhost:8000")!
+        let backendURL = AppEnvironment.backendBaseURL
         let tokenStore = KeychainTokenStore()
         let bootstrapProvider = StoredTokenProvider(store: tokenStore)
         let authClient = APIClient(baseURL: backendURL, tokenProvider: bootstrapProvider)

@@ -9,14 +9,16 @@ from starlette.responses import JSONResponse, Response
 from app.services.auth_service import verify_token
 
 # Paths that do not require authentication
-_PUBLIC_PATHS = frozenset({
-    "/health",
-    "/docs",
-    "/openapi.json",
-    "/redoc",
-    "/api/v1/auth/login",
-    "/api/v1/webhooks/plaid",
-})
+_PUBLIC_PATHS = frozenset(
+    {
+        "/health",
+        "/docs",
+        "/openapi.json",
+        "/redoc",
+        "/api/v1/auth/login",
+        "/api/v1/webhooks/plaid",
+    }
+)
 
 # Path prefixes that do not require authentication
 _PUBLIC_PREFIXES = (
@@ -35,9 +37,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
     and sets request.state.user_id.
     """
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         """Validate JWT for protected routes."""
         path = request.url.path
 

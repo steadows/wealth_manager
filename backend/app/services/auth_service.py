@@ -10,9 +10,7 @@ from jose import JWTError, jwt
 from app.config import get_settings
 
 
-def create_access_token(
-    user_id: uuid.UUID, *, expire_minutes: int | None = None
-) -> str:
+def create_access_token(user_id: uuid.UUID, *, expire_minutes: int | None = None) -> str:
     """Create a JWT access token for the given user.
 
     Args:
@@ -47,9 +45,7 @@ def verify_token(token: str) -> uuid.UUID:
     """
     settings = get_settings()
     try:
-        payload = jwt.decode(
-            token, settings.jwt_secret, algorithms=[settings.jwt_algorithm]
-        )
+        payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
     except JWTError as exc:
         raise ValueError(f"Token expired or invalid: {exc}") from exc
 

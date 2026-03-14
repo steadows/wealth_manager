@@ -9,7 +9,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.middleware.auth import AuthMiddleware
 from app.middleware.rate_limiter import RateLimiterMiddleware
-from app.routers import accounts, advisory, auth, goals, health, plaid, sync, transactions, webhooks
+from app.routers import (
+    accounts,
+    advisory,
+    auth,
+    goals,
+    health,
+    plaid,
+    sync,
+    transactions,
+    webhooks,
+)
 
 
 @asynccontextmanager

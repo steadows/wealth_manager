@@ -58,7 +58,7 @@ nonisolated struct NetWorthProjector: Sendable {
         let savings = toDouble(annualSavings)
         let returnRate = toDouble(annualReturn)
 
-        for year in 1...max(years, 0) {
+        for year in 1..<(years + 1) {
             netWorth = netWorth * (1.0 + returnRate) + savings
             let nw = toDecimal(netWorth)
             points.append(ProjectionPoint(

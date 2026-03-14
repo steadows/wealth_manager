@@ -62,6 +62,7 @@ struct AppLockView: View {
 
     private var lockIcon: some View {
         Image(systemName: "lock.fill")
+            .accessibilityLabel("App locked")
     }
 
     private var biometricButtonTitle: String {

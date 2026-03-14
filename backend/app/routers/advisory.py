@@ -11,18 +11,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import Settings, get_settings
 from app.dependencies import get_current_user, get_db
 from app.schemas.advisory import (
+    AccountSummary,
     BriefingPeriod,
     CFOBriefing,
     ChatRequest,
     DebtAnalysis,
+    DebtSummary,
+    GoalSummary,
     HealthScoreResponse,
     ProactiveAlert,
     RetirementAnalysis,
     TaxAnalysis,
     UserFinancialSnapshot,
-    AccountSummary,
-    DebtSummary,
-    GoalSummary,
 )
 from app.schemas.common import APIResponse
 from app.services.advisory_service import AdvisoryService
@@ -105,15 +105,11 @@ async def build_snapshot(
     goals = result.scalars().all()
 
     # Fetch profile
-    result = await db.execute(
-        select(UserProfile).where(UserProfile.user_id == user_id)
-    )
+    result = await db.execute(select(UserProfile).where(UserProfile.user_id == user_id))
     profile = result.scalars().first()
 
     # Aggregate
-    total_assets = sum(
-        (a.current_balance for a in accounts if a.is_asset), Decimal(0)
-    )
+    total_assets = sum((a.current_balance for a in accounts if a.is_asset), Decimal(0))
     total_liabilities = sum(
         (a.current_balance for a in accounts if a.is_liability), Decimal(0)
     ) + sum((d.current_balance for d in debts), Decimal(0))

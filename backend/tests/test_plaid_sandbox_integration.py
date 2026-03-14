@@ -177,8 +177,13 @@ class TestAccountBalances:
         accounts = plaid_service.get_accounts(access_token)
 
         valid_types = {
-            "checking", "savings", "creditCard", "investment",
-            "loan", "retirement", "other",
+            "checking",
+            "savings",
+            "creditCard",
+            "investment",
+            "loan",
+            "retirement",
+            "other",
         }
         for acct in accounts:
             mapped = _map_plaid_account_type(
@@ -204,9 +209,7 @@ class TestAccountBalances:
             d = Decimal(str(current))
             # Round-trip: converting Decimal back to float and to str(Decimal)
             # should not introduce float noise like 0.30000000000000004
-            assert str(d) == str(current), (
-                f"Decimal precision issue: {current!r} -> {d}"
-            )
+            assert str(d) == str(current), f"Decimal precision issue: {current!r} -> {d}"
 
 
 # ---------------------------------------------------------------------------

@@ -87,6 +87,8 @@ struct NetWorthView: View {
         .frame(maxWidth: .infinity)
         .padding(24)
         .glassCard()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Net Worth summary")
     }
 
     // MARK: - History Chart
@@ -151,6 +153,8 @@ struct NetWorthView: View {
                     }
                 }
                 .frame(height: 250)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Net worth history chart showing \(vm.history.count) data points over time")
             }
         }
         .padding(24)
@@ -214,6 +218,7 @@ struct NetWorthView: View {
                     HStack {
                         Image(systemName: "flag.fill")
                             .foregroundStyle(WMColors.secondary)
+                            .accessibilityHidden(true)
 
                         CurrencyText(amount: milestone.milestone, font: WMTypography.body)
 
@@ -224,6 +229,8 @@ struct NetWorthView: View {
                             .foregroundStyle(WMColors.textMuted)
                     }
                     .padding(.vertical, 4)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Milestone reached")
                 }
             }
             .padding(24)
@@ -267,6 +274,8 @@ struct NetWorthView: View {
         .background(WMColors.glassBg)
         .clipShape(Capsule())
         .overlay(Capsule().stroke(WMColors.glassBorder, lineWidth: 1))
+        .accessibilityLabel("Show \(label) history")
+        .accessibilityValue(vm.selectedTimePeriod == period ? "Selected" : "")
     }
 
     private func formatPercent(_ value: Decimal) -> String {

@@ -100,9 +100,7 @@ class PlaidService:
         response = self._client.item_public_token_exchange(request)
         return response.access_token, response.item_id
 
-    def sync_transactions(
-        self, access_token: str, cursor: str | None = None
-    ) -> dict:
+    def sync_transactions(self, access_token: str, cursor: str | None = None) -> dict:
         """Sync transactions for an account using Plaid's transactions/sync.
 
         Args:

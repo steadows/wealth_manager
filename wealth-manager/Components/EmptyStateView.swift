@@ -62,5 +62,7 @@ struct EmptyStateView: View {
         .padding(32)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .glassCard()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title). \(description)")
     }
 }

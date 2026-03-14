@@ -16,9 +16,7 @@ class GoalService:
     def __init__(self, session: AsyncSession) -> None:
         self._repo = GoalRepository(session)
 
-    async def create_goal(
-        self, user_id: uuid.UUID, data: GoalCreate
-    ) -> FinancialGoal:
+    async def create_goal(self, user_id: uuid.UUID, data: GoalCreate) -> FinancialGoal:
         """Create a new financial goal for a user.
 
         Args:

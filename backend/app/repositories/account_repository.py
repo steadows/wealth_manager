@@ -19,12 +19,7 @@ class AccountRepository(BaseRepository[Account]):
         self, user_id: uuid.UUID, *, offset: int = 0, limit: int = 100
     ) -> list[Account]:
         """Fetch all accounts belonging to a specific user."""
-        stmt = (
-            select(Account)
-            .where(Account.user_id == user_id)
-            .offset(offset)
-            .limit(limit)
-        )
+        stmt = select(Account).where(Account.user_id == user_id).offset(offset).limit(limit)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 

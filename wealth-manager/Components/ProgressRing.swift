@@ -28,6 +28,9 @@ struct ProgressRing: View {
                 .foregroundStyle(isOverThreshold ? WMColors.negative : WMColors.textPrimary)
         }
         .frame(width: size, height: size)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Progress: \(percentageLabel)")
+        .accessibilityValue(isOverThreshold ? "Over threshold" : "Within threshold")
     }
 
     // MARK: - Private

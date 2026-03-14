@@ -1,8 +1,14 @@
 import Foundation
 
 /// ViewModel for the account detail view with transactions.
+/// Supports paginated loading via `loadMoreTransactions()`.
 @Observable
 final class AccountDetailViewModel {
+
+    // MARK: - Constants
+
+    /// Number of transactions to load per page.
+    static let pageSize: Int = 50
 
     // MARK: - Published State
 
@@ -11,7 +17,12 @@ final class AccountDetailViewModel {
     var searchText: String = ""
     var selectedCategory: TransactionCategory?
     var isLoading: Bool = false
+    var hasMorePages: Bool = true
     var error: Error?
+
+    // MARK: - Private State
+
+    private var currentOffset: Int = 0
 
     // MARK: - Dependencies
 
@@ -48,13 +59,43 @@ final class AccountDetailViewModel {
 
     // MARK: - Actions
 
-    /// Loads transactions for the current account.
+    /// Loads the first page of transactions for the current account.
     func loadTransactions() async {
         isLoading = true
         error = nil
+        currentOffset = 0
+        transactions = []
 
         do {
-            transactions = try await transactionRepo.fetchByAccount(account.id)
+            let page = try await transactionRepo.fetchByAccount(
+                account.id,
+                limit: Self.pageSize,
+                offset: 0
+            )
+            transactions = page
+            currentOffset = page.count
+            hasMorePages = page.count >= Self.pageSize
+        } catch {
+            self.error = error
+        }
+
+        isLoading = false
+    }
+
+    /// Loads the next page of transactions and appends to the existing list.
+    func loadMoreTransactions() async {
+        guard hasMorePages, !isLoading else { return }
+        isLoading = true
+
+        do {
+            let page = try await transactionRepo.fetchByAccount(
+                account.id,
+                limit: Self.pageSize,
+                offset: currentOffset
+            )
+            transactions.append(contentsOf: page)
+            currentOffset += page.count
+            hasMorePages = page.count >= Self.pageSize
         } catch {
             self.error = error
         }

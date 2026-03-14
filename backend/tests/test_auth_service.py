@@ -17,7 +17,7 @@ from app.config import get_settings
 # Clear cached settings so test env vars take effect
 get_settings.cache_clear()
 
-from app.services.auth_service import (
+from app.services.auth_service import (  # noqa: E402
     create_access_token,
     decode_apple_identity_token,
     verify_token,

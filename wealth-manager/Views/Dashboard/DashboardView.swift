@@ -47,6 +47,8 @@ struct DashboardView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)
         .glassCard()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Net Worth card")
     }
 
     private var netWorthChangeRow: some View {
@@ -54,6 +56,7 @@ struct DashboardView: View {
             Image(systemName: changeArrowIcon)
                 .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(changeColor)
+                .accessibilityHidden(true)
 
             CurrencyText(
                 amount: viewModel.netWorthChange,
@@ -65,6 +68,8 @@ struct DashboardView: View {
                 .font(WMTypography.caption)
                 .foregroundStyle(WMColors.textMuted)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Change: \(viewModel.netWorthChange >= 0 ? "up" : "down") vs last snapshot")
     }
 
     private var changeArrowIcon: String {
@@ -90,6 +95,8 @@ struct DashboardView: View {
         .frame(width: 160)
         .padding(20)
         .glassCard()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Financial Health Score: \(viewModel.healthScore) out of 100")
     }
 
     // MARK: - Quick Actions
@@ -210,6 +217,8 @@ struct DashboardView: View {
             }
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(transaction.merchantName ?? "Unknown") transaction")
     }
     #endif
 
@@ -272,13 +281,17 @@ struct DashboardView: View {
             if goal.isOnTrack {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(WMColors.positive)
+                    .accessibilityHidden(true)
             } else {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundStyle(WMColors.negative)
+                    .accessibilityHidden(true)
             }
         }
         .padding(12)
         .glassCard(cornerRadius: 10)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(goal.goalName), \(goal.isOnTrack ? "on track" : "needs attention")")
     }
 
     // MARK: - AI Insight

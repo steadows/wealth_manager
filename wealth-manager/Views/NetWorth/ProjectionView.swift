@@ -92,6 +92,8 @@ struct ProjectionView: View {
                     }
                 }
                 .frame(height: 300)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Net worth projection chart showing \(vm.scenarios.count) scenarios over \(vm.projectionYears) years")
 
                 // Legend with final values
                 VStack(spacing: 8) {
@@ -176,6 +178,8 @@ struct ProjectionView: View {
                     }
                 }
                 .frame(height: 250)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Monte Carlo simulation chart. 1,000 simulations showing probability distribution of net worth")
 
                 HStack {
                     Label {
@@ -268,6 +272,8 @@ struct ProjectionView: View {
                     )
                     .clipShape(Capsule())
                     .overlay(Capsule().stroke(WMColors.glassBorder, lineWidth: 1))
+                    .accessibilityLabel("\(years) year projection")
+                    .accessibilityValue(vm.projectionYears == years ? "Selected" : "")
                 }
             }
         }

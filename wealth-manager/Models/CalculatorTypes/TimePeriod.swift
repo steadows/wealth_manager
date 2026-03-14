@@ -1,6 +1,6 @@
 import Foundation
 
-nonisolated enum TimePeriod: Sendable {
+nonisolated enum TimePeriod: Sendable, Equatable {
     case week
     case month
     case quarter
