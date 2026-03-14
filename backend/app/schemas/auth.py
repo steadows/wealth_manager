@@ -5,13 +5,13 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class LoginRequest(BaseModel):
     """Apple Sign-In token exchange request."""
 
-    identity_token: str
+    identity_token: str = Field(..., min_length=1, max_length=5000)
 
 
 class LoginResponse(BaseModel):

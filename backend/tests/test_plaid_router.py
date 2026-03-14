@@ -11,6 +11,9 @@ import pytest
 
 os.environ.setdefault("JWT_SECRET", "test-secret-not-for-production")
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
+os.environ.setdefault(
+    "PLAID_ENCRYPTION_KEY", "PrpkpI4BgxXvJt05Iqq2gIycYUVVr0L2Rz--cIw-nzo="
+)
 
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -18,9 +21,11 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from app.database import Base
 from app.dependencies import get_current_user, get_db
 from app.main import create_app
+from app.config import get_settings
 from app.models.account import Account
 from app.services.auth_service import create_access_token
 from app.services.plaid_service import get_plaid_service
+from app.utils.encryption import encrypt_value
 
 TEST_USER_ID = uuid.UUID("00000000-0000-4000-a000-000000000001")
 
@@ -167,12 +172,16 @@ class TestSyncEndpoint:
         """Should sync transactions for an account."""
         from datetime import UTC, datetime
 
-        # Create an account with plaid credentials
+        # Create an account with encrypted plaid credentials
+        settings = get_settings()
+        encrypted_token = encrypt_value(
+            "access-sandbox-xyz", settings.plaid_encryption_key
+        )
         account = Account(
             id=uuid.uuid4(),
             user_id=TEST_USER_ID,
             plaid_account_id="plaid-acct-1",
-            plaid_access_token="access-sandbox-xyz",
+            plaid_access_token=encrypted_token,
             plaid_item_id="item-sandbox-abc",
             plaid_cursor=None,
             institution_name="Test Bank",

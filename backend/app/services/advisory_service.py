@@ -2,6 +2,7 @@
 
 from collections.abc import AsyncGenerator
 
+from app.config import Settings, get_settings
 from app.schemas.advisory import (
     DebtAnalysis,
     RetirementAnalysis,
@@ -19,9 +20,17 @@ class AdvisoryService:
         self,
         claude_service: ClaudeService,
         prompt_manager: PromptManager,
+        settings: Settings | None = None,
     ) -> None:
         self._claude = claude_service
         self._prompts = prompt_manager
+        self._settings = settings if settings is not None else get_settings()
+
+    def _build_context(self, snapshot: UserFinancialSnapshot) -> str:
+        """Return financial context text, anonymizing PII when configured."""
+        if self._settings.anonymize_pii_for_ai:
+            return self._prompts.build_financial_context(snapshot, anonymize=True)
+        return self._prompts.build_financial_context(snapshot)
 
     async def chat(
         self,
@@ -29,12 +38,21 @@ class AdvisoryService:
         snapshot: UserFinancialSnapshot,
         user_message: str,
     ) -> AsyncGenerator[str, None]:
-        """Stream a chat response with full financial context injected."""
-        context = self._prompts.build_financial_context(snapshot)
-        system_prompt = self._prompts.load_system_prompt("financial_advisor")
-        full_system = f"{system_prompt}\n\nUser's Financial Data:\n{context}"
+        """Stream a chat response with financial context injected via user message.
 
-        async for chunk in self._claude.stream(full_system, user_message):
+        The financial context is placed inside the user message (delimited by
+        XML tags) rather than the system prompt.  This prevents an attacker
+        who controls account/debt/goal names from injecting instructions into
+        the privileged system-prompt position (CWE-74).
+        """
+        context = self._build_context(snapshot)
+        system_prompt = self._prompts.load_system_prompt("financial_advisor")
+        augmented_user_message = (
+            f"<financial_data>\n{context}\n</financial_data>\n\n"
+            f"<user_question>\n{user_message}\n</user_question>"
+        )
+
+        async for chunk in self._claude.stream(system_prompt, augmented_user_message):
             yield chunk
 
     async def analyze_retirement(
@@ -43,9 +61,14 @@ class AdvisoryService:
         snapshot: UserFinancialSnapshot,
     ) -> RetirementAnalysis:
         """Generate a structured retirement analysis."""
-        context = self._prompts.build_financial_context(snapshot)
+        context = self._build_context(snapshot)
         system_prompt = self._prompts.load_system_prompt("financial_advisor")
-        user_message = f"Analyze my retirement readiness based on this data:\n{context}"
+        user_message = (
+            f"<financial_data>\n{context}\n</financial_data>\n\n"
+            "<user_question>\n"
+            "Analyze my retirement readiness based on the financial data above."
+            "\n</user_question>"
+        )
 
         return await self._claude.structured_generate(
             system_prompt=system_prompt,
@@ -59,9 +82,14 @@ class AdvisoryService:
         snapshot: UserFinancialSnapshot,
     ) -> TaxAnalysis:
         """Generate a structured tax analysis."""
-        context = self._prompts.build_financial_context(snapshot)
+        context = self._build_context(snapshot)
         system_prompt = self._prompts.load_system_prompt("tax_advisor")
-        user_message = f"Analyze my tax optimization opportunities:\n{context}"
+        user_message = (
+            f"<financial_data>\n{context}\n</financial_data>\n\n"
+            "<user_question>\n"
+            "Analyze my tax optimization opportunities based on the financial data above."
+            "\n</user_question>"
+        )
 
         return await self._claude.structured_generate(
             system_prompt=system_prompt,
@@ -75,9 +103,14 @@ class AdvisoryService:
         snapshot: UserFinancialSnapshot,
     ) -> DebtAnalysis:
         """Generate a structured debt strategy analysis."""
-        context = self._prompts.build_financial_context(snapshot)
+        context = self._build_context(snapshot)
         system_prompt = self._prompts.load_system_prompt("debt_strategist")
-        user_message = f"Analyze my debt situation and recommend a strategy:\n{context}"
+        user_message = (
+            f"<financial_data>\n{context}\n</financial_data>\n\n"
+            "<user_question>\n"
+            "Analyze my debt situation and recommend a strategy based on the financial data above."
+            "\n</user_question>"
+        )
 
         return await self._claude.structured_generate(
             system_prompt=system_prompt,

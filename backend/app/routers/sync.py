@@ -19,6 +19,8 @@ router = APIRouter(prefix="/sync", tags=["sync"])
 @router.get("/", response_model=APIResponse[SyncResponse])
 async def get_sync(
     since: datetime | None = Query(default=None, description="ISO8601 timestamp for delta sync"),
+    limit: int = Query(default=500, ge=1, le=5000, description="Max records per entity type"),
+    offset: int = Query(default=0, ge=0, description="Offset for pagination"),
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user),
 ) -> APIResponse[SyncResponse]:
@@ -29,7 +31,7 @@ async def get_sync(
     to use in the next call.
     """
     service = SyncService(db)
-    payload = await service.get_changes_since(user_id, since=since)
+    payload = await service.get_changes_since(user_id, since=since, limit=limit, offset=offset)
     return APIResponse(data=payload)
 
 

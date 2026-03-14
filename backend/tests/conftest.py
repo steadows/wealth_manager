@@ -9,6 +9,9 @@ import pytest
 # Set required env vars before any app imports
 os.environ.setdefault("JWT_SECRET", "test-secret-not-for-production")
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
+os.environ.setdefault(
+    "PLAID_ENCRYPTION_KEY", "PrpkpI4BgxXvJt05Iqq2gIycYUVVr0L2Rz--cIw-nzo="
+)
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 

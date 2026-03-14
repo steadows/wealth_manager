@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class UserResponse(BaseModel):
@@ -13,7 +13,6 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
-    apple_id: str
     email: str | None = None
     created_at: datetime
     updated_at: datetime
@@ -23,15 +22,15 @@ class UserProfileUpdate(BaseModel):
     """Schema for updating a user profile."""
 
     date_of_birth: datetime | None = None
-    annual_income: Decimal | None = None
-    monthly_expenses: Decimal | None = None
-    filing_status: str | None = None
-    state_of_residence: str | None = None
-    retirement_age: int | None = None
-    risk_tolerance: str | None = None
-    dependents: int | None = None
+    annual_income: Decimal | None = Field(default=None, ge=Decimal(0), le=Decimal("999999999999999.9999"))
+    monthly_expenses: Decimal | None = Field(default=None, ge=Decimal(0), le=Decimal("999999999999999.9999"))
+    filing_status: str | None = Field(default=None, max_length=50)
+    state_of_residence: str | None = Field(default=None, max_length=50)
+    retirement_age: int | None = Field(default=None, ge=18, le=100)
+    risk_tolerance: str | None = Field(default=None, max_length=50)
+    dependents: int | None = Field(default=None, ge=0, le=50)
     has_spouse: bool | None = None
-    spouse_income: Decimal | None = None
+    spouse_income: Decimal | None = Field(default=None, ge=Decimal(0), le=Decimal("999999999999999.9999"))
 
 
 class UserProfileResponse(BaseModel):

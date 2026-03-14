@@ -7,10 +7,11 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from jose import jwt
+import jwt
 
 os.environ["JWT_SECRET"] = "test-secret-not-for-production"
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
+os.environ["DEV_SKIP_AUTH_VERIFICATION"] = "true"
 
 from app.config import get_settings
 
@@ -136,3 +137,19 @@ class TestDecodeAppleIdentityToken:
         """Should raise ValueError for a completely invalid token."""
         with pytest.raises(ValueError):
             decode_apple_identity_token("not-a-jwt")
+
+    def test_rejects_token_when_auth_verification_enabled(self) -> None:
+        """With dev_skip_auth_verification=False, should raise NotImplementedError.
+
+        This ensures that outside of dev/sandbox mode, unverified tokens
+        (including alg:none attacks) are never silently accepted.
+        """
+        from unittest.mock import patch
+
+        payload = {"sub": "apple-user-001", "email": "attacker@evil.com"}
+        fake_token = jwt.encode(payload, "any-key", algorithm="HS256")
+
+        with patch("app.services.auth_service.get_settings") as mock_settings:
+            mock_settings.return_value.dev_skip_auth_verification = False
+            with pytest.raises(NotImplementedError, match="Production Apple token verification"):
+                decode_apple_identity_token(fake_token)

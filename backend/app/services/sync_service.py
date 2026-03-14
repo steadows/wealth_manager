@@ -31,17 +31,21 @@ class SyncService:
         self,
         user_id: uuid.UUID,
         since: datetime | None,
+        limit: int = 500,
+        offset: int = 0,
     ) -> SyncResponse:
         """Query all entities modified after `since` for the given user.
 
         If `since` is None, returns all data (initial sync).
         All queries filter by user_id for data isolation.
+        `limit` caps the number of records returned per entity type;
+        `offset` enables pagination across calls.
         """
-        accounts = await self._get_accounts_since(user_id, since)
-        transactions = await self._get_transactions_since(user_id, since, accounts)
-        goals = await self._get_goals_since(user_id, since)
-        debts = await self._get_debts_since(user_id, since)
-        snapshots = await self._get_snapshots_since(user_id, since)
+        accounts = await self._get_accounts_since(user_id, since, limit, offset)
+        transactions = await self._get_transactions_since(user_id, since, accounts, limit, offset)
+        goals = await self._get_goals_since(user_id, since, limit, offset)
+        debts = await self._get_debts_since(user_id, since, limit, offset)
+        snapshots = await self._get_snapshots_since(user_id, since, limit, offset)
 
         return SyncResponse(
             accounts=[AccountResponse.model_validate(a) for a in accounts],
@@ -79,11 +83,14 @@ class SyncService:
         self,
         user_id: uuid.UUID,
         since: datetime | None,
+        limit: int = 500,
+        offset: int = 0,
     ) -> list[Account]:
         """Fetch accounts modified after `since`."""
         stmt = select(Account).where(Account.user_id == user_id)
         if since is not None:
             stmt = stmt.where(Account.updated_at > since)
+        stmt = stmt.offset(offset).limit(limit)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
@@ -92,6 +99,8 @@ class SyncService:
         user_id: uuid.UUID,
         since: datetime | None,
         accounts: list[Account] | None = None,
+        limit: int = 500,
+        offset: int = 0,
     ) -> list[Transaction]:
         """Fetch transactions for user's accounts, created after `since`.
 
@@ -105,6 +114,7 @@ class SyncService:
         )
         if since is not None:
             stmt = stmt.where(Transaction.created_at > since)
+        stmt = stmt.offset(offset).limit(limit)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
@@ -112,11 +122,14 @@ class SyncService:
         self,
         user_id: uuid.UUID,
         since: datetime | None,
+        limit: int = 500,
+        offset: int = 0,
     ) -> list[FinancialGoal]:
         """Fetch goals modified after `since`."""
         stmt = select(FinancialGoal).where(FinancialGoal.user_id == user_id)
         if since is not None:
             stmt = stmt.where(FinancialGoal.updated_at > since)
+        stmt = stmt.offset(offset).limit(limit)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
@@ -124,11 +137,14 @@ class SyncService:
         self,
         user_id: uuid.UUID,
         since: datetime | None,
+        limit: int = 500,
+        offset: int = 0,
     ) -> list[Debt]:
         """Fetch debts modified after `since`."""
         stmt = select(Debt).where(Debt.user_id == user_id)
         if since is not None:
             stmt = stmt.where(Debt.updated_at > since)
+        stmt = stmt.offset(offset).limit(limit)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
@@ -136,6 +152,8 @@ class SyncService:
         self,
         user_id: uuid.UUID,
         since: datetime | None,
+        limit: int = 500,
+        offset: int = 0,
     ) -> list[NetWorthSnapshot]:
         """Fetch snapshots created after `since`.
 
@@ -144,6 +162,7 @@ class SyncService:
         stmt = select(NetWorthSnapshot).where(NetWorthSnapshot.user_id == user_id)
         if since is not None:
             stmt = stmt.where(NetWorthSnapshot.date > since)
+        stmt = stmt.offset(offset).limit(limit)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 

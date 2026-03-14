@@ -6,12 +6,13 @@ import uuid
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.dependencies import get_current_user, get_db
 from app.models.account import Account
+from app.utils.encryption import encrypt_value, decrypt_value
 from app.repositories.account_repository import AccountRepository
 from app.schemas.account import AccountResponse
 from app.schemas.plaid import (
@@ -26,6 +27,7 @@ from app.schemas.plaid import (
     SandboxResetLoginResponse,
 )
 from app.services.plaid_service import PlaidService, get_plaid_service
+from app.utils.security_logger import log_token_exchange
 
 router = APIRouter(prefix="/plaid", tags=["plaid"])
 
@@ -71,6 +73,7 @@ async def create_link_token(
 @router.post("/exchange-token", response_model=PlaidExchangeResponse)
 async def exchange_token(
     body: PlaidExchangeRequest,
+    request: Request,
     user_id: uuid.UUID = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     plaid: PlaidService = Depends(get_plaid_service),
@@ -80,8 +83,13 @@ async def exchange_token(
     Calls Plaid to exchange the public_token for an access_token,
     fetches account data, and persists Account records.
     """
+    ip = request.client.host if request.client else "unknown"
+    log_token_exchange(user_id=str(user_id), provider="plaid", ip=ip)
     access_token, item_id = plaid.exchange_public_token(body.public_token)
     plaid_accounts = plaid.get_accounts(access_token)
+
+    settings = get_settings()
+    encrypted_token = encrypt_value(access_token, settings.plaid_encryption_key)
 
     repo = AccountRepository(db)
     created_accounts: list[Account] = []
@@ -93,7 +101,7 @@ async def exchange_token(
             id=uuid.uuid4(),
             user_id=user_id,
             plaid_account_id=plaid_acct.get("account_id", ""),
-            plaid_access_token=access_token,
+            plaid_access_token=encrypted_token,
             plaid_item_id=item_id,
             institution_name=plaid_acct.get("official_name") or plaid_acct.get("name", "Unknown"),
             account_name=plaid_acct.get("name", "Unknown"),
@@ -146,8 +154,13 @@ async def sync_account(
             detail="Account is not linked to Plaid",
         )
 
+    settings = get_settings()
+    decrypted_token = decrypt_value(
+        account.plaid_access_token, settings.plaid_encryption_key
+    )
+
     result = plaid.sync_transactions(
-        account.plaid_access_token,
+        decrypted_token,
         cursor=account.plaid_cursor,
     )
 
@@ -176,6 +189,7 @@ async def sync_account(
 )
 async def create_sandbox_public_token(
     body: SandboxPublicTokenRequest = SandboxPublicTokenRequest(),
+    user_id: uuid.UUID = Depends(get_current_user),
     plaid: PlaidService = Depends(get_plaid_service),
 ) -> SandboxPublicTokenResponse:
     """Create a Plaid public token via the sandbox API (sandbox only).
@@ -203,6 +217,7 @@ async def create_sandbox_public_token(
 )
 async def fire_sandbox_webhook(
     body: SandboxFireWebhookRequest,
+    user_id: uuid.UUID = Depends(get_current_user),
     plaid: PlaidService = Depends(get_plaid_service),
 ) -> SandboxFireWebhookResponse:
     """Fire a Plaid sandbox webhook (sandbox only).
@@ -230,6 +245,7 @@ async def fire_sandbox_webhook(
 )
 async def reset_sandbox_login(
     body: SandboxResetLoginRequest,
+    user_id: uuid.UUID = Depends(get_current_user),
     plaid: PlaidService = Depends(get_plaid_service),
 ) -> SandboxResetLoginResponse:
     """Reset a sandbox item's login credentials (sandbox only).

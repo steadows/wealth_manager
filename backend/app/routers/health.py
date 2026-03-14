@@ -1,10 +1,14 @@
 """Health check endpoints."""
 
+import logging
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["health"])
 
@@ -21,8 +25,9 @@ async def health_db(db: AsyncSession = Depends(get_db)) -> dict:
     try:
         await db.execute(text("SELECT 1"))
         return {"status": "healthy", "database": "connected"}
-    except Exception as exc:
-        return {"status": "unhealthy", "database": "disconnected", "error": str(exc)}
+    except Exception:
+        logger.exception("Database health check failed")
+        return {"status": "unhealthy", "database": "disconnected"}
 
 
 @router.get("/health/redis")

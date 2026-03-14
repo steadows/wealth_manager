@@ -9,6 +9,7 @@ from app.dependencies import get_current_user, get_db
 from app.schemas.account import AccountCreate, AccountResponse, AccountUpdate
 from app.schemas.common import APIResponse
 from app.services.account_service import AccountService
+from app.utils.security_logger import log_data_access
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
 
@@ -47,6 +48,7 @@ async def create_account(
     """Create a new account."""
     service = AccountService(db)
     account = await service.create_account(user_id, data)
+    log_data_access(user_id=str(user_id), resource="account", action="create")
     return APIResponse(data=AccountResponse.model_validate(account))
 
 
@@ -72,3 +74,4 @@ async def delete_account(
     """Delete an account."""
     service = AccountService(db)
     await service.delete_account(account_id, user_id)
+    log_data_access(user_id=str(user_id), resource="account", action="delete")

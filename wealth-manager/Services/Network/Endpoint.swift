@@ -13,6 +13,9 @@ enum HTTPMethod: String {
 
 /// Describes every API route the iOS client can call.
 enum Endpoint {
+    // Health
+    case health
+
     // Auth
     case login(identityToken: String)
     case refreshToken
@@ -48,6 +51,8 @@ extension Endpoint {
 
     var path: String {
         switch self {
+        case .health:
+            return "/health"
         case .login:
             return "/api/v1/auth/login"
         case .refreshToken:
@@ -92,7 +97,7 @@ extension Endpoint {
         case .login, .refreshToken, .createAccount, .createLinkToken,
              .exchangeToken, .plaidSync, .syncPush, .advisorChat:
             return .post
-        case .me, .listAccounts, .getAccount, .syncPull,
+        case .health, .me, .listAccounts, .getAccount, .syncPull,
              .getBriefing, .getHealthScore, .getAlerts, .annualReview:
             return .get
         case .updateAccount:
@@ -104,7 +109,7 @@ extension Endpoint {
 
     var requiresAuth: Bool {
         switch self {
-        case .login:
+        case .health, .login:
             return false
         default:
             return true

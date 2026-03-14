@@ -58,6 +58,26 @@ final class AuthService: TokenProvider, @unchecked Sendable {
         return response.accessToken
     }
 
+    // MARK: - Dev Sign In
+
+    #if DEBUG
+    /// Signs in with a fake JWT containing `sub=dev-local-user`.
+    /// Used for local development when the backend is in sandbox mode
+    /// and does not verify token signatures.
+    func devSignIn() async throws {
+        let header = Data(#"{"alg":"none","typ":"JWT"}"#.utf8)
+            .base64EncodedString()
+            .replacingOccurrences(of: "=", with: "")
+        let now = Int(Date().timeIntervalSince1970)
+        let payload = Data(#"{"sub":"dev-local-user","email":"dev@local.test","iat":\#(now)}"#.utf8)
+            .base64EncodedString()
+            .replacingOccurrences(of: "=", with: "")
+        let fakeJWT = "\(header).\(payload)."
+
+        try await signIn(identityToken: fakeJWT)
+    }
+    #endif
+
     // MARK: - Private
 
     private func fetchCurrentUser() async {

@@ -91,10 +91,12 @@ class ReportService:
         narrative = await self._claude.generate(
             system_prompt=system_prompt,
             user_message=(
+                f"<financial_data>\n{context}\n</financial_data>\n\n"
+                "<user_question>\n"
                 f"Explain this financial health score breakdown in 2-3 sentences. "
                 f"Be specific about what's strong and what needs work.\n\n"
-                f"Scores: {score_summary}\n\n"
-                f"Financial Data:\n{context}"
+                f"Scores: {score_summary}"
+                "\n</user_question>"
             ),
         )
 

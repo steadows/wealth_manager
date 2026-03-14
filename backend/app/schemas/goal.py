@@ -8,7 +8,7 @@ import uuid
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.enums import GoalPriority, GoalType
 
@@ -24,15 +24,15 @@ class GoalCreate(BaseModel):
     - priority is a valid GoalPriority enum value
     """
 
-    goal_name: str
+    goal_name: str = Field(..., max_length=200)
     goal_type: GoalType
-    target_amount: Decimal
-    current_amount: Decimal = Decimal(0)
+    target_amount: Decimal = Field(..., le=Decimal("999999999999999.9999"))
+    current_amount: Decimal = Field(default=Decimal(0), ge=Decimal(0), le=Decimal("999999999999999.9999"))
     target_date: datetime | None = None
-    monthly_contribution: Decimal | None = None
+    monthly_contribution: Decimal | None = Field(default=None, ge=Decimal(0), le=Decimal("999999999.9999"))
     priority: GoalPriority
     is_active: bool = True
-    notes: str | None = None
+    notes: str | None = Field(None, max_length=2000)
 
     @field_validator("goal_name")
     @classmethod
@@ -62,15 +62,15 @@ class GoalCreate(BaseModel):
 class GoalUpdate(BaseModel):
     """Schema for updating a financial goal."""
 
-    goal_name: str | None = None
+    goal_name: str | None = Field(None, max_length=200)
     goal_type: GoalType | None = None
-    target_amount: Decimal | None = None
-    current_amount: Decimal | None = None
+    target_amount: Decimal | None = Field(default=None, le=Decimal("999999999999999.9999"))
+    current_amount: Decimal | None = Field(default=None, ge=Decimal(0), le=Decimal("999999999999999.9999"))
     target_date: datetime | None = None
-    monthly_contribution: Decimal | None = None
+    monthly_contribution: Decimal | None = Field(default=None, ge=Decimal(0), le=Decimal("999999999.9999"))
     priority: GoalPriority | None = None
     is_active: bool | None = None
-    notes: str | None = None
+    notes: str | None = Field(None, max_length=2000)
 
     @field_validator("goal_name")
     @classmethod

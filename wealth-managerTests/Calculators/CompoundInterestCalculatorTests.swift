@@ -5,7 +5,7 @@ import Foundation
 
 // MARK: - CompoundInterestCalculatorTests
 
-@Suite("CompoundInterestCalculator")
+@Suite("CompoundInterestCalculator", .serialized)
 struct CompoundInterestCalculatorTests {
 
     // MARK: - futureValue
@@ -63,7 +63,9 @@ struct CompoundInterestCalculatorTests {
             annualRate: 0,
             years: 10
         )
-        #expect(result == 500 * 12 * 10)
+        // 500 * 120 months = 60,000 exactly
+        let expected: Decimal = 60_000
+        #expect(result == expected, "Expected \(expected) but got \(result)")
     }
 
     @Test("futureValueWithContributions: zero years returns 0")

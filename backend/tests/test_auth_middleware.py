@@ -7,7 +7,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from jose import jwt
+import jwt
 
 os.environ.setdefault("JWT_SECRET", "test-secret-not-for-production")
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")

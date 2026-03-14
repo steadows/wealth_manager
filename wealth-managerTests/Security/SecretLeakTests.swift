@@ -9,7 +9,7 @@ import Foundation
 // that error messages never surface token values to users or logs, and that
 // protected financial endpoints consistently require authentication.
 
-@Suite("Secret Leak Detection")
+@Suite("Secret Leak Detection", .serialized)
 struct SecretLeakTests {
 
     // MARK: - Keychain Storage
@@ -21,6 +21,8 @@ struct SecretLeakTests {
     @Test("keychainStore_doesNotUseUserDefaults")
     func keychainStore_doesNotUseUserDefaults() throws {
         let store = KeychainTokenStore()
+        // Clean up any leftover token from prior test runs
+        try? store.deleteAccessToken()
         let testToken = "test-jwt-\(UUID().uuidString)"
 
         // Capture all UserDefaults keys before and after saving
@@ -53,6 +55,8 @@ struct SecretLeakTests {
     @Test("keychainStore_tokenValue_notVisibleInUserDefaults")
     func keychainStore_tokenValue_notVisibleInUserDefaults() throws {
         let store = KeychainTokenStore()
+        // Clean up any leftover token from prior test runs
+        try? store.deleteAccessToken()
         let sentinelToken = "SENTINEL_TOKEN_\(UUID().uuidString)"
 
         try store.saveAccessToken(sentinelToken)
@@ -151,6 +155,7 @@ struct SecretLeakTests {
             .getBriefing(period: "weekly"),
             .getHealthScore,
             .getAlerts,
+            .annualReview(year: 2024),
         ]
 
         for endpoint in financialEndpoints {
@@ -159,11 +164,13 @@ struct SecretLeakTests {
         }
     }
 
-    /// Verifies that .login is the only endpoint that does NOT require authentication.
-    @Test("endpoint_loginOnly_doesNotRequireAuth")
-    func endpoint_loginOnly_doesNotRequireAuth() {
+    /// Verifies that only .login and .health do NOT require authentication.
+    @Test("endpoint_unauthenticatedEndpoints_doNotRequireAuth")
+    func endpoint_unauthenticatedEndpoints_doNotRequireAuth() {
         #expect(!Endpoint.login(identityToken: "tok").requiresAuth,
                 ".login must not require auth (it IS the auth handshake)")
+        #expect(!Endpoint.health.requiresAuth,
+                ".health must not require auth (it is a public liveness probe)")
     }
 }
 

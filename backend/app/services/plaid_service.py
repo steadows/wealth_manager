@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+import hashlib
+import logging
+import time
 import uuid
 
 import plaid
+import jwt as pyjwt
+from jwt.exceptions import PyJWTError
 from plaid.api import plaid_api
 from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
 from plaid.model.country_code import CountryCode
@@ -27,8 +32,17 @@ from plaid.model.sandbox_public_token_create_request_options import (
     SandboxPublicTokenCreateRequestOptions,
 )
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
+from plaid.model.webhook_verification_key_get_request import (
+    WebhookVerificationKeyGetRequest,
+)
 
 from app.config import get_settings
+
+logger = logging.getLogger(__name__)
+
+# Cache verification keys to avoid repeated API calls (key_id -> JWK dict)
+_jwk_cache: dict[str, tuple[dict, float]] = {}
+_JWK_CACHE_TTL_SECONDS = 3600  # 1 hour
 
 _PLAID_ENV_MAP = {
     "sandbox": plaid.Environment.Sandbox,
@@ -194,6 +208,78 @@ class PlaidService:
         request = SandboxItemResetLoginRequest(access_token=access_token)
         response = self._client.sandbox_item_reset_login(request)
         return {"reset_login": response.reset_login}
+
+    def _get_verification_key(self, key_id: str) -> dict:
+        """Fetch a Plaid webhook verification key by key_id, with caching.
+
+        Args:
+            key_id: The key ID from the JWT header.
+
+        Returns:
+            A JWK dict suitable for jose JWT verification.
+
+        Raises:
+            ValueError: If the key cannot be fetched.
+        """
+        now = time.time()
+        cached = _jwk_cache.get(key_id)
+        if cached and (now - cached[1]) < _JWK_CACHE_TTL_SECONDS:
+            return cached[0]
+
+        request = WebhookVerificationKeyGetRequest(key_id=key_id)
+        response = self._client.webhook_verification_key_get(request)
+        jwk = response.key.to_dict()
+        _jwk_cache[key_id] = (jwk, now)
+        return jwk
+
+    def verify_webhook_body(self, body: bytes, plaid_verification_header: str) -> bool:
+        """Verify a Plaid webhook request's signature.
+
+        Plaid signs webhooks with a JWT in the Plaid-Verification header.
+        The JWT contains a request_body_sha256 claim that must match the
+        SHA-256 hash of the raw request body.
+
+        Args:
+            body: The raw request body bytes.
+            plaid_verification_header: The value of the Plaid-Verification header.
+
+        Returns:
+            True if the signature is valid.
+
+        Raises:
+            ValueError: If verification fails for any reason.
+        """
+        try:
+            # Decode JWT header to get key_id (kid)
+            unverified_header = pyjwt.get_unverified_header(plaid_verification_header)
+            key_id = unverified_header.get("kid")
+            if not key_id:
+                raise ValueError("Missing kid in JWT header")
+
+            # Fetch the verification key from Plaid
+            jwk = self._get_verification_key(key_id)
+
+            # Verify the JWT signature (Plaid uses ES256)
+            public_key = pyjwt.algorithms.ECAlgorithm.from_jwk(jwk)
+            claims = pyjwt.decode(
+                plaid_verification_header,
+                public_key,
+                algorithms=["ES256"],
+            )
+
+            # Verify the body hash
+            expected_hash = claims.get("request_body_sha256")
+            if not expected_hash:
+                raise ValueError("Missing request_body_sha256 claim in JWT")
+
+            actual_hash = hashlib.sha256(body).hexdigest()
+            if actual_hash != expected_hash:
+                raise ValueError("Request body hash mismatch")
+
+            return True
+
+        except PyJWTError as exc:
+            raise ValueError(f"JWT verification failed: {exc}") from exc
 
     def get_accounts(self, access_token: str) -> list[dict]:
         """Fetch account balances from Plaid.

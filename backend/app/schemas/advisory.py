@@ -31,15 +31,15 @@ class BriefingPeriod(StrEnum):
 class ChatRequest(BaseModel):
     """Inbound chat message from client."""
 
-    message: str
+    message: str = Field(..., min_length=1, max_length=4000)
     conversation_id: uuid.UUID | None = None
 
 
 class ChatMessage(BaseModel):
     """A single chat message (user or assistant)."""
 
-    role: str  # "user" | "assistant"
-    content: str
+    role: str = Field(..., max_length=20)  # "user" | "assistant"
+    content: str = Field(..., max_length=50000)
     conversation_id: uuid.UUID
     created_at: datetime
 

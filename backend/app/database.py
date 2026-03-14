@@ -1,9 +1,9 @@
 """Async SQLAlchemy database engine and session configuration."""
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import TIMESTAMP, Numeric
+from sqlalchemy import Date, TIMESTAMP, Numeric
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
@@ -16,6 +16,7 @@ class Base(DeclarativeBase):
     type_annotation_map = {
         Decimal: Numeric(precision=19, scale=4),
         datetime: TIMESTAMP(timezone=True),
+        date: Date(),
     }
 
 

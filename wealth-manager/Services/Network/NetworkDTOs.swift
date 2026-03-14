@@ -9,6 +9,12 @@ struct APIResponseEnvelope<T: Decodable>: Decodable {
     let error: String?
 }
 
+// MARK: - Health DTO
+
+struct HealthResponseDTO: Codable {
+    let status: String
+}
+
 // MARK: - Auth DTOs
 
 struct LoginResponseDTO: Codable {

@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import async_session_factory
 from app.services.auth_service import verify_token
+from app.utils.security_logger import log_auth_failure
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -23,6 +24,14 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             raise
 
 
+def _client_ip(request: Request) -> str:
+    """Extract client IP from request, preferring X-Forwarded-For."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
 async def get_current_user(request: Request) -> uuid.UUID:
     """Extract and verify JWT from the Authorization header.
 
@@ -31,8 +40,10 @@ async def get_current_user(request: Request) -> uuid.UUID:
     Raises:
         HTTPException: 401 if token is missing, malformed, or invalid.
     """
+    ip = _client_ip(request)
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
+        log_auth_failure(ip=ip, reason="Missing or invalid authorization header")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing or invalid authorization header",
@@ -43,6 +54,7 @@ async def get_current_user(request: Request) -> uuid.UUID:
     try:
         return verify_token(token)
     except ValueError as exc:
+        log_auth_failure(ip=ip, reason=str(exc))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(exc),

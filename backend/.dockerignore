@@ -1,18 +1,41 @@
+# Version control
+.git
+.gitignore
+
+# Python
 __pycache__
 *.pyc
 *.pyo
-.env
-.venv
-.git
-.gitignore
-.dockerignore
-.ruff_cache
 .pytest_cache
+.ruff_cache
 .mypy_cache
+htmlcov
+.coverage
 *.egg-info
 dist
 build
-tests
+
+# Virtual environments
+.venv
+venv
+
+# IDE
+.vscode
+.idea
+
+# Environment files
+.env
+.env.*
+
+# Development files
+*.db
+*.sqlite3
+tests/
+scripts/
 docker-compose.yml
+docker-compose.*.yml
 Dockerfile
+
+# Documentation
 *.md
+docs/

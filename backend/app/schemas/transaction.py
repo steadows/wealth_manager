@@ -4,19 +4,23 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TransactionCreate(BaseModel):
     """Schema for creating a new transaction."""
 
     account_id: uuid.UUID
-    amount: Decimal
+    amount: Decimal = Field(
+        ...,
+        ge=Decimal("-999999999999999.9999"),
+        le=Decimal("999999999999999.9999"),
+    )
     date: datetime
-    merchant_name: str | None = None
-    category: str
-    subcategory: str | None = None
-    note: str | None = None
+    merchant_name: str | None = Field(default=None, max_length=200)
+    category: str = Field(..., min_length=1, max_length=100)
+    subcategory: str | None = Field(default=None, max_length=100)
+    note: str | None = Field(default=None, max_length=2000)
     is_recurring: bool = False
     is_pending: bool = False
 
@@ -24,12 +28,16 @@ class TransactionCreate(BaseModel):
 class TransactionUpdate(BaseModel):
     """Schema for updating a transaction."""
 
-    amount: Decimal | None = None
+    amount: Decimal | None = Field(
+        default=None,
+        ge=Decimal("-999999999999999.9999"),
+        le=Decimal("999999999999999.9999"),
+    )
     date: datetime | None = None
-    merchant_name: str | None = None
-    category: str | None = None
-    subcategory: str | None = None
-    note: str | None = None
+    merchant_name: str | None = Field(default=None, max_length=200)
+    category: str | None = Field(default=None, min_length=1, max_length=100)
+    subcategory: str | None = Field(default=None, max_length=100)
+    note: str | None = Field(default=None, max_length=2000)
     is_recurring: bool | None = None
     is_pending: bool | None = None
 

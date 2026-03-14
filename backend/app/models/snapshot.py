@@ -1,7 +1,7 @@
 """NetWorthSnapshot SQLAlchemy model."""
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import ForeignKey, Index
@@ -17,7 +17,7 @@ class NetWorthSnapshot(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    date: Mapped[datetime]
+    date: Mapped[date]
     total_assets: Mapped[Decimal]
     total_liabilities: Mapped[Decimal]
 

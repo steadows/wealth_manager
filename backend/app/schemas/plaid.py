@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.schemas.account import AccountResponse
 
@@ -22,7 +22,7 @@ class PlaidLinkResponse(BaseModel):
 class PlaidExchangeRequest(BaseModel):
     """Request to exchange a Plaid public token."""
 
-    public_token: str
+    public_token: str = Field(..., min_length=1, max_length=500)
 
 
 class PlaidExchangeResponse(BaseModel):
@@ -34,7 +34,7 @@ class PlaidExchangeResponse(BaseModel):
 class SandboxPublicTokenRequest(BaseModel):
     """Request to create a sandbox public token (sandbox only)."""
 
-    institution_id: str = "ins_109508"
+    institution_id: str = Field(default="ins_109508", max_length=100)
     initial_products: list[str] = ["transactions"]
 
 
@@ -47,8 +47,8 @@ class SandboxPublicTokenResponse(BaseModel):
 class SandboxFireWebhookRequest(BaseModel):
     """Request to fire a sandbox webhook."""
 
-    access_token: str
-    webhook_code: str = "SYNC_UPDATES_AVAILABLE"
+    access_token: str = Field(..., max_length=500)
+    webhook_code: str = Field(default="SYNC_UPDATES_AVAILABLE", max_length=100)
 
 
 class SandboxFireWebhookResponse(BaseModel):
@@ -60,7 +60,7 @@ class SandboxFireWebhookResponse(BaseModel):
 class SandboxResetLoginRequest(BaseModel):
     """Request to reset a sandbox item's login credentials."""
 
-    access_token: str
+    access_token: str = Field(..., max_length=500)
 
 
 class SandboxResetLoginResponse(BaseModel):
