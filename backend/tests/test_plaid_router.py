@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import time
 import uuid
 from decimal import Decimal
 from unittest.mock import MagicMock
@@ -19,6 +20,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.database import Base
+from app.routers.plaid import _link_token_owners
 from app.dependencies import get_current_user, get_db
 from app.main import create_app
 from app.config import get_settings
@@ -308,6 +310,9 @@ class TestResolveSessionEndpoint:
             }
         ]
 
+        # Pre-register link token in ownership cache
+        _link_token_owners["link-sandbox-hosted-token"] = (TEST_USER_ID, time.time())
+
         response = await plaid_client.post(
             "/api/v1/plaid/resolve-session",
             json={"link_token": "link-sandbox-hosted-token"},
@@ -330,6 +335,9 @@ class TestResolveSessionEndpoint:
         mock_plaid_service.resolve_hosted_session.return_value = {
             "status": "pending",
         }
+
+        # Pre-register link token in ownership cache
+        _link_token_owners["link-sandbox-hosted-pending"] = (TEST_USER_ID, time.time())
 
         response = await plaid_client.post(
             "/api/v1/plaid/resolve-session",
@@ -366,6 +374,9 @@ class TestResolveSessionEndpoint:
         mock_plaid_service.resolve_hosted_session.side_effect = Exception(
             "Plaid API error"
         )
+
+        # Pre-register link token in ownership cache
+        _link_token_owners["link-sandbox-hosted-error"] = (TEST_USER_ID, time.time())
 
         response = await plaid_client.post(
             "/api/v1/plaid/resolve-session",

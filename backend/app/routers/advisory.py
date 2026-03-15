@@ -2,10 +2,13 @@
 
 import json
 import uuid
+from collections import defaultdict
+from datetime import date
+from typing import Any
 from decimal import Decimal
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,6 +38,39 @@ from app.services.report_service import ReportService
 _PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 
 router = APIRouter(tags=["advisory"])
+
+# ── Per-user daily token budget tracking ──
+
+_daily_token_usage: dict[str, dict[str, Any]] = defaultdict(
+    lambda: {"date": "", "tokens": 0}
+)
+_DAILY_TOKEN_BUDGET = 100_000  # 100k tokens/day per user
+
+
+def _check_token_budget(user_id: uuid.UUID) -> None:
+    """Raise 429 if user has exceeded daily token budget."""
+    key = str(user_id)
+    today = str(date.today())
+    usage = _daily_token_usage[key]
+    if usage["date"] != today:
+        usage["date"] = today
+        usage["tokens"] = 0
+    if usage["tokens"] >= _DAILY_TOKEN_BUDGET:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Daily AI usage limit reached. Try again tomorrow.",
+        )
+
+
+def _track_token_usage(user_id: uuid.UUID, tokens: int) -> None:
+    """Record token usage for budget tracking."""
+    key = str(user_id)
+    today = str(date.today())
+    usage = _daily_token_usage[key]
+    if usage["date"] != today:
+        usage["date"] = today
+        usage["tokens"] = 0
+    usage["tokens"] = int(usage["tokens"]) + tokens
 
 
 # ── Dependency factories ──
@@ -168,16 +204,21 @@ async def advisor_chat(
     service: AdvisoryService = Depends(get_advisory_service),
 ) -> StreamingResponse:
     """Stream an AI advisory chat response via SSE."""
+    _check_token_budget(user_id)
     snapshot = await build_snapshot(user_id, db)
 
     async def event_stream():
+        total_chars = 0
         async for chunk in service.chat(
             snapshot=snapshot,
             user_message=data.message,
         ):
+            total_chars += len(chunk)
             # JSON-encode the chunk so newlines are safely escaped as \n
             # within a single data: line. The iOS client JSON-decodes to restore them.
             yield f"data: {json.dumps(chunk)}\n\n"
+        # Estimate tokens: ~4 chars per token output + ~1500 tokens input overhead
+        _track_token_usage(user_id, max(1, (total_chars // 4) + 1500))
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(
@@ -195,12 +236,14 @@ async def get_briefing(
     service: ReportService = Depends(get_report_service),
 ) -> APIResponse[CFOBriefing]:
     """Generate a CFO briefing report."""
+    _check_token_budget(user_id)
     snapshot = await build_snapshot(user_id, db)
     briefing = await service.generate_briefing(
         snapshot=snapshot,
         period=period,
         net_worth_change=Decimal("0"),  # TODO: compute from snapshots
     )
+    _track_token_usage(user_id, 1500)
     return APIResponse(data=briefing)
 
 
@@ -211,6 +254,7 @@ async def get_health_score(
     service: ReportService = Depends(get_report_service),
 ) -> APIResponse[HealthScoreResponse]:
     """Get the current financial health score with AI narrative."""
+    _check_token_budget(user_id)
     snapshot = await build_snapshot(user_id, db)
     # TODO: compute real scores from HealthScoreCalculator
     scores = {
@@ -221,6 +265,7 @@ async def get_health_score(
         "emergency_fund": 50,
     }
     result = await service.generate_health_score(snapshot=snapshot, scores=scores)
+    _track_token_usage(user_id, 1500)
     return APIResponse(data=result)
 
 
@@ -254,8 +299,10 @@ async def analyze_retirement(
     service: AdvisoryService = Depends(get_advisory_service),
 ) -> APIResponse[RetirementAnalysis]:
     """Generate a full retirement analysis."""
+    _check_token_budget(user_id)
     snapshot = await build_snapshot(user_id, db)
     result = await service.analyze_retirement(snapshot=snapshot)
+    _track_token_usage(user_id, 1500)
     return APIResponse(data=result)
 
 
@@ -269,8 +316,10 @@ async def analyze_tax(
     service: AdvisoryService = Depends(get_advisory_service),
 ) -> APIResponse[TaxAnalysis]:
     """Generate tax optimization suggestions."""
+    _check_token_budget(user_id)
     snapshot = await build_snapshot(user_id, db)
     result = await service.analyze_tax(snapshot=snapshot)
+    _track_token_usage(user_id, 1500)
     return APIResponse(data=result)
 
 
@@ -284,6 +333,8 @@ async def analyze_debt(
     service: AdvisoryService = Depends(get_advisory_service),
 ) -> APIResponse[DebtAnalysis]:
     """Generate debt strategy recommendations."""
+    _check_token_budget(user_id)
     snapshot = await build_snapshot(user_id, db)
     result = await service.analyze_debt(snapshot=snapshot)
+    _track_token_usage(user_id, 1500)
     return APIResponse(data=result)

@@ -87,7 +87,7 @@ class TestAdvisoryService:
 
         assert collected == chunks
         # Verify context was built
-        mock_prompt_manager.build_financial_context.assert_called_once_with(snapshot)
+        mock_prompt_manager.build_financial_context.assert_called_once_with(snapshot, anonymize=True)
 
     async def test_analyze_retirement_returns_structured(self):
         """analyze_retirement() should return RetirementAnalysis."""

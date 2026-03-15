@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import logging
+import time
 import uuid
 from datetime import UTC, datetime
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
@@ -38,6 +40,11 @@ from app.utils.security_logger import log_token_exchange
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/plaid", tags=["plaid"])
+
+# In-memory link token ownership cache (link_token -> (user_id, created_at))
+# Link tokens expire after 30 minutes; entries cleaned on access.
+_link_token_owners: dict[str, tuple[uuid.UUID, float]] = {}
+_LINK_TOKEN_TTL = 1800  # 30 minutes
 
 # Map Plaid account types to our AccountType enum values
 _PLAID_TYPE_MAP = {
@@ -153,9 +160,10 @@ async def _store_synced_transactions(
         try:
             await txn_repo.create(txn)
             created_count += 1
-        except Exception:
-            # Duplicate plaid_transaction_id (unique constraint) — skip
+        except IntegrityError:
             logger.debug("Skipping duplicate transaction %s", plaid_txn_id)
+        except Exception as exc:
+            logger.warning("Failed to store transaction %s: %s", plaid_txn_id, exc, exc_info=True)
 
     return created_count
 
@@ -229,6 +237,12 @@ async def create_hosted_link_token(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Failed to create hosted link token from Plaid",
         )
+    # Lazy cleanup of expired entries
+    now = time.time()
+    expired = [k for k, (_, t) in _link_token_owners.items() if now - t > _LINK_TOKEN_TTL]
+    for k in expired:
+        del _link_token_owners[k]
+    _link_token_owners[link_token] = (user_id, now)
     return HostedLinkTokenResponse(
         link_token=link_token,
         hosted_link_url=hosted_link_url,
@@ -250,6 +264,25 @@ async def resolve_session(
     session status via /link/token/get, and if complete, exchanges the
     public_token for an access_token and creates Account records.
     """
+    # Verify link token ownership (pop is atomic under GIL, prevents replay)
+    owner = _link_token_owners.pop(body.link_token, None)
+    if owner is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Link token not found or expired",
+        )
+    owner_id, created_at = owner
+    if time.time() - created_at > _LINK_TOKEN_TTL:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Link token not found or expired",
+        )
+    if owner_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Link token does not belong to this user",
+        )
+
     try:
         result = plaid.resolve_hosted_session(body.link_token)
     except Exception:

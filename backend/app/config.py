@@ -48,7 +48,7 @@ class Settings(BaseSettings):
 
     # AI privacy — replace account/institution/debt names with generic labels before
     # sending financial context to the Claude API (balances and rates are kept intact)
-    anonymize_pii_for_ai: bool = False
+    anonymize_pii_for_ai: bool = True
 
     # Environment — controls feature availability and security enforcement
     environment: str = "development"  # "development", "test", "production"

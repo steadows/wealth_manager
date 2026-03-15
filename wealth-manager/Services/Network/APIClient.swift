@@ -154,7 +154,12 @@ final class APIClient: APIClientProtocol, @unchecked Sendable {
             if let envelope = try? decoder.decode(APIResponseEnvelope<EmptyResponse>.self, from: data) {
                 message = envelope.error ?? "Unknown error"
             } else {
-                message = String(data: data, encoding: .utf8) ?? "Unknown error"
+                if httpResponse.statusCode >= 500 {
+                    logger.error("Server error \(httpResponse.statusCode): \(String(data: data.prefix(500), encoding: .utf8) ?? "<binary>", privacy: .private)")
+                    message = "An unexpected server error occurred. Please try again."
+                } else {
+                    message = String(data: data, encoding: .utf8) ?? "Unknown error"
+                }
             }
             throw APIError.serverError(statusCode: httpResponse.statusCode, message: message)
         }
@@ -177,7 +182,7 @@ final class APIClient: APIClientProtocol, @unchecked Sendable {
                 return try decoder.decode(T.self, from: data)
             } catch let directError {
                 let preview = String(data: data.prefix(500), encoding: .utf8) ?? "<binary>"
-                logger.error("Decode failed for \(T.self): \(directError.localizedDescription, privacy: .public)\nResponse body: \(preview, privacy: .public)")
+                logger.error("Decode failed for \(T.self): \(directError.localizedDescription, privacy: .public)\nResponse body: \(preview, privacy: .private)")
                 throw APIError.decodingError(directError)
             }
         }

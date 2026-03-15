@@ -109,7 +109,7 @@ class PlaidService:
         )
         logger.info("Creating link token for user=%s", user_id)
         response = self._client.link_token_create(request)
-        logger.info("Link token created: %s...", response.link_token[:30])
+        logger.debug("Link token created: %s...", response.link_token[:30])
         return response.link_token
 
     def create_hosted_link_token(self, user_id: uuid.UUID) -> tuple[str, str]:
@@ -149,10 +149,10 @@ class PlaidService:
         link_token = response.link_token
         hosted_link_url = response.hosted_link_url
 
-        logger.info(
-            "Hosted link token created: token=%s..., url=%s",
+        logger.debug(
+            "Hosted link token created: token=%s..., url=%s...",
             link_token[:30],
-            hosted_link_url,
+            hosted_link_url[:50] if hosted_link_url else "",
         )
         return link_token, hosted_link_url
 
@@ -204,8 +204,9 @@ class PlaidService:
 
         # Check the most recent session
         latest_session = sessions[-1]
-        session_dict = latest_session.to_dict() if hasattr(latest_session, "to_dict") else str(latest_session)
-        logger.info("Latest session for %s...: %s", link_token[:30], session_dict)
+        session_dict = latest_session.to_dict() if hasattr(latest_session, "to_dict") else {}
+        session_keys = list(session_dict.keys()) if isinstance(session_dict, dict) else []
+        logger.debug("Latest session for %s...: keys=%s", link_token[:30], session_keys)
 
         # Check for successful completion — try both on_success and results.item_add_result
         on_success = getattr(latest_session, "on_success", None)
