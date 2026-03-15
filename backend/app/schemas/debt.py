@@ -6,6 +6,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.common import JsonDecimal
+
 
 class DebtCreate(BaseModel):
     """Schema for creating a new debt."""
@@ -43,10 +45,10 @@ class DebtResponse(BaseModel):
     account_id: uuid.UUID | None = None
     debt_name: str
     debt_type: str
-    original_balance: Decimal
-    current_balance: Decimal
-    interest_rate: Decimal
-    minimum_payment: Decimal
+    original_balance: JsonDecimal
+    current_balance: JsonDecimal
+    interest_rate: JsonDecimal
+    minimum_payment: JsonDecimal
     payoff_date: datetime | None = None
     is_fixed_rate: bool
     created_at: datetime

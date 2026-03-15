@@ -18,7 +18,7 @@ Build a personal CFO iOS app from a fresh Xcode template. The app actively analy
 macOS App (SwiftUI + SwiftData)     FastAPI Backend (Python)
   - MVVM + Repository pattern         - Plaid token exchange + webhooks
   - On-device calculation engine       - Claude API advisory prompts
-  - Plaid Link via WKWebView           - PostgreSQL + Redis
+  - Plaid Hosted Link (ASWebAuth)      - PostgreSQL + Redis
   - Local cache via SwiftData          - JWT auth + Apple Sign-In
   - NavigationSplitView (sidebar)      - Celery for background tasks
   - Toolbar + menu bar integration

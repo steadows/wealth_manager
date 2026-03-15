@@ -6,6 +6,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.common import JsonDecimal
+
 
 class TransactionCreate(BaseModel):
     """Schema for creating a new transaction."""
@@ -50,7 +52,7 @@ class TransactionResponse(BaseModel):
     id: uuid.UUID
     account_id: uuid.UUID
     plaid_transaction_id: str | None = None
-    amount: Decimal
+    amount: JsonDecimal
     date: datetime
     merchant_name: str | None = None
     category: str
@@ -59,3 +61,12 @@ class TransactionResponse(BaseModel):
     is_recurring: bool
     is_pending: bool
     created_at: datetime
+
+
+class TransactionListResponse(BaseModel):
+    """Paginated list of transactions for an account."""
+
+    transactions: list[TransactionResponse]
+    total: int
+    limit: int
+    offset: int

@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import os
 import uuid
-from unittest.mock import MagicMock
+from datetime import datetime, timezone
+from unittest.mock import MagicMock, PropertyMock
 
 import pytest
 
@@ -254,3 +255,139 @@ class TestPlaidServiceErrorHandling:
         )
         with pytest.raises(Exception, match="Balance fetch failed"):
             plaid_service.get_accounts("access-token")
+
+
+class TestCreateHostedLinkToken:
+    """Tests for create_hosted_link_token."""
+
+    def test_returns_link_token_and_hosted_url(self, plaid_service: PlaidService) -> None:
+        """create_hosted_link_token should return (link_token, hosted_link_url)."""
+        mock_response = MagicMock()
+        mock_response.link_token = "link-sandbox-hosted-abc123"
+        mock_response.hosted_link_url = "https://hosted.plaid.com/sessions/test-session"
+
+        plaid_service._client.link_token_create = MagicMock(return_value=mock_response)
+        link_token, hosted_url = plaid_service.create_hosted_link_token(uuid.uuid4())
+
+        assert link_token == "link-sandbox-hosted-abc123"
+        assert hosted_url == "https://hosted.plaid.com/sessions/test-session"
+
+    def test_plaid_api_failure_raises(self, plaid_service: PlaidService) -> None:
+        """create_hosted_link_token should propagate Plaid API errors."""
+        plaid_service._client.link_token_create = MagicMock(
+            side_effect=Exception("Hosted link creation failed")
+        )
+        with pytest.raises(Exception, match="Hosted link creation failed"):
+            plaid_service.create_hosted_link_token(uuid.uuid4())
+
+
+class TestResolveHostedSession:
+    """Tests for resolve_hosted_session."""
+
+    def _make_token_get_response(
+        self,
+        *,
+        sessions: list | None = None,
+        expiration: datetime | None = None,
+    ) -> MagicMock:
+        """Build a mock link_token_get response."""
+        response = MagicMock()
+        response.link_sessions = sessions
+        if expiration is not None:
+            response.expiration = expiration
+        else:
+            # Future expiration by default
+            response.expiration = datetime(2099, 1, 1, tzinfo=timezone.utc)
+        return response
+
+    def _make_complete_session(self, public_token: str = "public-sandbox-hosted-123") -> MagicMock:
+        """Build a mock session with on_success containing a public_token."""
+        session = MagicMock()
+        session.on_success = MagicMock()
+        session.on_success.public_token = public_token
+        # Ensure exit/on_exit don't trigger
+        session.exit = None
+        session.on_exit = None
+        session.finished_at = datetime.now(timezone.utc)
+        return session
+
+    def _make_exited_session(self) -> MagicMock:
+        """Build a mock session where user exited (cancelled)."""
+        session = MagicMock()
+        session.on_success = None
+        session.exit = MagicMock()  # non-None signals exit
+        session.on_exit = None
+        session.finished_at = datetime.now(timezone.utc)
+        return session
+
+    def test_complete_session_returns_accounts(self, plaid_service: PlaidService) -> None:
+        """resolve_hosted_session should exchange token when session is complete."""
+        complete_session = self._make_complete_session("public-sandbox-hosted-xyz")
+        response = self._make_token_get_response(sessions=[complete_session])
+
+        plaid_service._client.link_token_get = MagicMock(return_value=response)
+
+        mock_exchange = MagicMock()
+        mock_exchange.access_token = "access-sandbox-hosted-789"
+        mock_exchange.item_id = "item-hosted-abc"
+        plaid_service._client.item_public_token_exchange = MagicMock(return_value=mock_exchange)
+
+        result = plaid_service.resolve_hosted_session("link-sandbox-hosted-token")
+
+        assert result["status"] == "complete"
+        assert result["public_token"] == "public-sandbox-hosted-xyz"
+        assert result["access_token"] == "access-sandbox-hosted-789"
+        assert result["item_id"] == "item-hosted-abc"
+
+    def test_pending_session_no_sessions(self, plaid_service: PlaidService) -> None:
+        """resolve_hosted_session should return pending when no sessions exist."""
+        response = self._make_token_get_response(sessions=[])
+
+        plaid_service._client.link_token_get = MagicMock(return_value=response)
+
+        result = plaid_service.resolve_hosted_session("link-sandbox-hosted-pending")
+        assert result["status"] == "pending"
+        assert "access_token" not in result
+
+    def test_exited_session_returns_exited(self, plaid_service: PlaidService) -> None:
+        """resolve_hosted_session should return exited when user cancelled."""
+        exited_session = self._make_exited_session()
+        response = self._make_token_get_response(sessions=[exited_session])
+
+        plaid_service._client.link_token_get = MagicMock(return_value=response)
+
+        result = plaid_service.resolve_hosted_session("link-sandbox-hosted-exited")
+        assert result["status"] == "exited"
+        assert "access_token" not in result
+
+    def test_expired_link_token_returns_expired(self, plaid_service: PlaidService) -> None:
+        """resolve_hosted_session should return expired for past-expiration tokens."""
+        past = datetime(2020, 1, 1, tzinfo=timezone.utc)
+        response = self._make_token_get_response(sessions=[], expiration=past)
+
+        plaid_service._client.link_token_get = MagicMock(return_value=response)
+
+        result = plaid_service.resolve_hosted_session("link-sandbox-expired")
+        assert result["status"] == "expired"
+
+    def test_pending_session_in_progress(self, plaid_service: PlaidService) -> None:
+        """resolve_hosted_session returns pending when session exists but not finished."""
+        session = MagicMock()
+        session.on_success = None
+        session.exit = None
+        session.on_exit = None
+        session.finished_at = None
+        response = self._make_token_get_response(sessions=[session])
+
+        plaid_service._client.link_token_get = MagicMock(return_value=response)
+
+        result = plaid_service.resolve_hosted_session("link-sandbox-in-progress")
+        assert result["status"] == "pending"
+
+    def test_plaid_api_failure_propagates(self, plaid_service: PlaidService) -> None:
+        """resolve_hosted_session should propagate Plaid API errors."""
+        plaid_service._client.link_token_get = MagicMock(
+            side_effect=Exception("link_token_get failed")
+        )
+        with pytest.raises(Exception, match="link_token_get failed"):
+            plaid_service.resolve_hosted_session("link-sandbox-bad")

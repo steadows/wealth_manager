@@ -38,7 +38,7 @@ enum AppEnvironment {
 
         // 3. Compile-time default
         #if DEBUG
-        return URL(string: "http://localhost:8000")!
+        return URL(string: "http://127.0.0.1:8000")!
         #else
         return URL(string: "https://api.wealthmanager.app")!
         #endif

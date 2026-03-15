@@ -3,6 +3,20 @@ import Foundation
 
 @testable import wealth_manager
 
+// MARK: - MockHostedLinkOpener
+
+final class MockHostedLinkOpener: HostedLinkOpening, @unchecked Sendable {
+    var resultToReturn: PlaidLinkResult = .success(publicToken: "", institutionName: nil)
+    var openCallCount = 0
+    var lastOpenedURL: URL?
+
+    func open(hostedLinkURL: URL) async -> PlaidLinkResult {
+        openCallCount += 1
+        lastOpenedURL = hostedLinkURL
+        return resultToReturn
+    }
+}
+
 // MARK: - MockPlaidLinkService
 
 final class MockPlaidLinkService: PlaidLinkServiceProtocol, @unchecked Sendable {
@@ -12,6 +26,15 @@ final class MockPlaidLinkService: PlaidLinkServiceProtocol, @unchecked Sendable 
     var createLinkTokenCallCount = 0
     var exchangeTokenCallCount = 0
     var lastExchangedPublicToken: String?
+
+    // Hosted link properties
+    var hostedLinkTokenToReturn: String = "link-hosted-test"
+    var hostedLinkURLToReturn: URL = URL(string: "https://hosted.plaid.com/link/test")!
+    var hostedLinkAccountsToReturn: [Account] = []
+    var hostedLinkError: Error?
+    var createHostedLinkTokenCallCount = 0
+    var resolveSessionCallCount = 0
+    var lastResolvedLinkToken: String?
 
     func createLinkToken() async throws -> String {
         createLinkTokenCallCount += 1
@@ -26,8 +49,17 @@ final class MockPlaidLinkService: PlaidLinkServiceProtocol, @unchecked Sendable 
         return accountsToReturn
     }
 
-    func linkURL(for linkToken: String) -> URL {
-        URL(string: "https://cdn.plaid.com/link/v2/stable/link.html?isWebview=true&token=\(linkToken)")!
+    func createHostedLinkToken() async throws -> (linkToken: String, hostedLinkURL: URL) {
+        createHostedLinkTokenCallCount += 1
+        if let error = hostedLinkError ?? shouldThrow { throw error }
+        return (linkToken: hostedLinkTokenToReturn, hostedLinkURL: hostedLinkURLToReturn)
+    }
+
+    func resolveSession(linkToken: String) async throws -> [Account] {
+        resolveSessionCallCount += 1
+        lastResolvedLinkToken = linkToken
+        if let error = hostedLinkError ?? shouldThrow { throw error }
+        return hostedLinkAccountsToReturn
     }
 }
 
@@ -39,10 +71,11 @@ struct PlaidLinkViewModelTests {
     // MARK: - Helpers
 
     private func makeViewModel(
-        plaidService: MockPlaidLinkService = MockPlaidLinkService()
-    ) -> (PlaidLinkViewModel, MockPlaidLinkService) {
-        let vm = PlaidLinkViewModel(plaidService: plaidService)
-        return (vm, plaidService)
+        plaidService: MockPlaidLinkService = MockPlaidLinkService(),
+        hostedLinkHandler: MockHostedLinkOpener = MockHostedLinkOpener()
+    ) -> (PlaidLinkViewModel, MockPlaidLinkService, MockHostedLinkOpener) {
+        let vm = PlaidLinkViewModel(plaidService: plaidService, hostedLinkHandler: hostedLinkHandler)
+        return (vm, plaidService, hostedLinkHandler)
     }
 
     private func makeSampleAccount(name: String = "Checking") -> Account {
@@ -59,7 +92,7 @@ struct PlaidLinkViewModelTests {
 
     @Test("initial state is idle")
     func initialState() {
-        let (vm, _) = makeViewModel()
+        let (vm, _, _) = makeViewModel()
 
         #expect(vm.state == .idle)
         #expect(!vm.isLoading)
@@ -74,7 +107,7 @@ struct PlaidLinkViewModelTests {
     func startLinkingSuccess() async {
         let mockService = MockPlaidLinkService()
         mockService.linkTokenToReturn = "link-sandbox-abc"
-        let (vm, _) = makeViewModel(plaidService: mockService)
+        let (vm, _, _) = makeViewModel(plaidService: mockService)
 
         await vm.startLinking()
 
@@ -90,7 +123,7 @@ struct PlaidLinkViewModelTests {
     func startLinkingFailure() async {
         let mockService = MockPlaidLinkService()
         mockService.shouldThrow = APIError.serverError(statusCode: 500, message: "Failed")
-        let (vm, _) = makeViewModel(plaidService: mockService)
+        let (vm, _, _) = makeViewModel(plaidService: mockService)
 
         await vm.startLinking()
 
@@ -107,7 +140,7 @@ struct PlaidLinkViewModelTests {
         let mockService = MockPlaidLinkService()
         let account = makeSampleAccount()
         mockService.accountsToReturn = [account]
-        let (vm, _) = makeViewModel(plaidService: mockService)
+        let (vm, _, _) = makeViewModel(plaidService: mockService)
 
         await vm.handlePublicToken("public-sandbox-xyz")
 
@@ -127,7 +160,7 @@ struct PlaidLinkViewModelTests {
         mockService.shouldThrow = APIError.networkError(
             NSError(domain: "test", code: -1)
         )
-        let (vm, _) = makeViewModel(plaidService: mockService)
+        let (vm, _, _) = makeViewModel(plaidService: mockService)
 
         await vm.handlePublicToken("public-token")
 
@@ -142,7 +175,7 @@ struct PlaidLinkViewModelTests {
     @Test("handleExit: dismisses web view and resets to idle")
     func handleExit() async {
         let mockService = MockPlaidLinkService()
-        let (vm, _) = makeViewModel(plaidService: mockService)
+        let (vm, _, _) = makeViewModel(plaidService: mockService)
 
         // First start linking to get into linkReady state
         await vm.startLinking()
@@ -154,20 +187,6 @@ struct PlaidLinkViewModelTests {
         #expect(vm.state == .idle)
     }
 
-    // MARK: - Link URL
-
-    @Test("linkURL: delegates to service")
-    func linkURLDelegatesToService() async {
-        let mockService = MockPlaidLinkService()
-        mockService.linkTokenToReturn = "link-token-abc"
-        let (vm, _) = makeViewModel(plaidService: mockService)
-
-        await vm.startLinking()
-        let url = vm.currentLinkURL
-
-        #expect(url?.absoluteString.contains("link-token-abc") == true)
-    }
-
     // MARK: - Reset
 
     @Test("reset: clears all state")
@@ -175,7 +194,7 @@ struct PlaidLinkViewModelTests {
         let mockService = MockPlaidLinkService()
         let account = makeSampleAccount()
         mockService.accountsToReturn = [account]
-        let (vm, _) = makeViewModel(plaidService: mockService)
+        let (vm, _, _) = makeViewModel(plaidService: mockService)
 
         // Get into linked state
         await vm.handlePublicToken("token")
@@ -188,5 +207,175 @@ struct PlaidLinkViewModelTests {
         #expect(vm.linkToken == nil)
         #expect(vm.error == nil)
         #expect(!vm.showWebView)
+    }
+
+    // MARK: - Hosted Link: Happy Path
+
+    @Test("startHostedLinking: full flow — fetches token, opens handler, resolves session, returns accounts")
+    func startHostedLinkingSuccess() async {
+        let mockService = MockPlaidLinkService()
+        let mockHandler = MockHostedLinkOpener()
+        let account = makeSampleAccount()
+        mockService.hostedLinkAccountsToReturn = [account]
+        mockHandler.resultToReturn = .success(publicToken: "", institutionName: nil)
+        let (vm, _, _) = makeViewModel(plaidService: mockService, hostedLinkHandler: mockHandler)
+
+        await vm.startHostedLinking()
+
+        #expect(vm.state == .linked)
+        #expect(vm.linkedAccounts.count == 1)
+        #expect(vm.linkedAccounts[0].institutionName == "Chase")
+        #expect(vm.linkToken == "link-hosted-test")
+        #expect(vm.hostedLinkURL == URL(string: "https://hosted.plaid.com/link/test")!)
+        #expect(vm.error == nil)
+        #expect(mockService.createHostedLinkTokenCallCount == 1)
+        #expect(mockService.resolveSessionCallCount == 1)
+        #expect(mockService.lastResolvedLinkToken == "link-hosted-test")
+        #expect(mockHandler.openCallCount == 1)
+        #expect(mockHandler.lastOpenedURL == URL(string: "https://hosted.plaid.com/link/test")!)
+    }
+
+    // MARK: - Hosted Link: Create Token Failure
+
+    @Test("startHostedLinking: error when createHostedLinkToken fails")
+    func startHostedLinkingCreateTokenFailure() async {
+        let mockService = MockPlaidLinkService()
+        mockService.hostedLinkError = APIError.serverError(statusCode: 500, message: "Backend down")
+        let mockHandler = MockHostedLinkOpener()
+        let (vm, _, _) = makeViewModel(plaidService: mockService, hostedLinkHandler: mockHandler)
+
+        await vm.startHostedLinking()
+
+        #expect(vm.state == .error)
+        #expect(vm.error != nil)
+        #expect(!vm.isLoading)
+        #expect(mockService.createHostedLinkTokenCallCount == 1)
+        #expect(mockHandler.openCallCount == 0)
+        #expect(mockService.resolveSessionCallCount == 0)
+    }
+
+    // MARK: - Hosted Link: Session Resolution Failure
+
+    @Test("startHostedLinking: error when resolveSession fails with non-session error")
+    func startHostedLinkingResolveFailure() async {
+        let service = DifferentiatingMockPlaidService()
+        service.resolveError = APIError.networkError(NSError(domain: "test", code: -1))
+        let handler = MockHostedLinkOpener()
+        handler.resultToReturn = .success(publicToken: "", institutionName: nil)
+        let vm = PlaidLinkViewModel(plaidService: service, hostedLinkHandler: handler)
+
+        await vm.startHostedLinking()
+
+        #expect(vm.state == .error)
+        #expect(vm.error != nil)
+        #expect(service.resolveSessionCallCount == 1)
+    }
+
+    // MARK: - Hosted Link: User Cancels ASWebAuth
+
+    @Test("startHostedLinking: user exits ASWebAuth — returns to idle")
+    func startHostedLinkingUserExit() async {
+        let mockService = MockPlaidLinkService()
+        let mockHandler = MockHostedLinkOpener()
+        mockHandler.resultToReturn = .exit(errorMessage: nil)
+        let (vm, _, _) = makeViewModel(plaidService: mockService, hostedLinkHandler: mockHandler)
+
+        await vm.startHostedLinking()
+
+        #expect(vm.state == .idle)
+        #expect(vm.error == nil)
+        #expect(mockService.resolveSessionCallCount == 0)
+        #expect(mockHandler.openCallCount == 1)
+    }
+
+    @Test("startHostedLinking: user exits with error message — returns to idle")
+    func startHostedLinkingUserExitWithMessage() async {
+        let mockService = MockPlaidLinkService()
+        let mockHandler = MockHostedLinkOpener()
+        mockHandler.resultToReturn = .exit(errorMessage: "USER_CANCELLED")
+        let (vm, _, _) = makeViewModel(plaidService: mockService, hostedLinkHandler: mockHandler)
+
+        await vm.startHostedLinking()
+
+        #expect(vm.state == .idle)
+        #expect(vm.error == nil)
+    }
+
+    // MARK: - Hosted Link: ASWebAuth Failure
+
+    @Test("startHostedLinking: ASWebAuth handler returns failure — sets error")
+    func startHostedLinkingHandlerFailure() async {
+        let mockService = MockPlaidLinkService()
+        let mockHandler = MockHostedLinkOpener()
+        mockHandler.resultToReturn = .failure(PlaidLinkError.sdkInitializationFailed("session failed"))
+        let (vm, _, _) = makeViewModel(plaidService: mockService, hostedLinkHandler: mockHandler)
+
+        await vm.startHostedLinking()
+
+        #expect(vm.state == .error)
+        #expect(vm.error != nil)
+        #expect(mockService.resolveSessionCallCount == 0)
+    }
+
+    // MARK: - Hosted Link: Session Pending Retries Exhausted
+
+    @Test("startHostedLinking: session pending exhausts retries — sets user-friendly error")
+    func startHostedLinkingPendingRetriesExhausted() async {
+        let service = DifferentiatingMockPlaidService()
+        service.resolveError = PlaidSessionError.sessionNotComplete(status: "pending")
+        let handler = MockHostedLinkOpener()
+        handler.resultToReturn = .success(publicToken: "", institutionName: nil)
+        let vm = PlaidLinkViewModel(plaidService: service, hostedLinkHandler: handler)
+
+        await vm.startHostedLinking()
+
+        #expect(vm.state == .error)
+        #expect(vm.error?.contains("still processing") == true)
+        // Should retry maxResolveRetries (3) times
+        #expect(service.resolveSessionCallCount == 3)
+    }
+
+    // MARK: - Reset clears hosted link state
+
+    @Test("reset: clears hostedLinkURL")
+    func resetClearsHostedLinkState() async {
+        let mockService = MockPlaidLinkService()
+        let mockHandler = MockHostedLinkOpener()
+        mockHandler.resultToReturn = .exit(errorMessage: nil)
+        let (vm, _, _) = makeViewModel(plaidService: mockService, hostedLinkHandler: mockHandler)
+
+        // Start hosted linking to populate hostedLinkURL
+        await vm.startHostedLinking()
+        #expect(vm.hostedLinkURL != nil)
+
+        vm.reset()
+
+        #expect(vm.hostedLinkURL == nil)
+        #expect(vm.state == .idle)
+        #expect(vm.linkToken == nil)
+    }
+}
+
+// MARK: - DifferentiatingMockPlaidService
+
+/// A mock that allows different error behavior for createHostedLinkToken vs resolveSession.
+final class DifferentiatingMockPlaidService: PlaidLinkServiceProtocol, @unchecked Sendable {
+    var linkToken: String = "link-hosted-diff-test"
+    var hostedLinkURL: URL = URL(string: "https://hosted.plaid.com/link/diff-test")!
+    var resolveError: Error?
+    var resolveAccounts: [Account] = []
+    var resolveSessionCallCount = 0
+
+    func createLinkToken() async throws -> String { "link-sandbox-test" }
+    func exchangeToken(publicToken: String) async throws -> [Account] { [] }
+
+    func createHostedLinkToken() async throws -> (linkToken: String, hostedLinkURL: URL) {
+        (linkToken: linkToken, hostedLinkURL: hostedLinkURL)
+    }
+
+    func resolveSession(linkToken: String) async throws -> [Account] {
+        resolveSessionCallCount += 1
+        if let error = resolveError { throw error }
+        return resolveAccounts
     }
 }

@@ -11,6 +11,7 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.enums import GoalPriority, GoalType
+from app.schemas.common import JsonDecimal
 
 
 class GoalCreate(BaseModel):
@@ -108,10 +109,10 @@ class GoalResponse(BaseModel):
     user_id: uuid.UUID
     goal_name: str
     goal_type: GoalType
-    target_amount: Decimal
-    current_amount: Decimal
+    target_amount: JsonDecimal
+    current_amount: JsonDecimal
     target_date: datetime | None = None
-    monthly_contribution: Decimal | None = None
+    monthly_contribution: JsonDecimal | None = None
     priority: GoalPriority
     is_active: bool
     notes: str | None = None

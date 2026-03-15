@@ -33,11 +33,13 @@ class Settings(BaseSettings):
     plaid_production_secret: str = ""
     plaid_env: str = "sandbox"
     plaid_encryption_key: str = ""  # Fernet key for encrypting Plaid tokens at rest
+    plaid_redirect_uri: str = ""  # HTTPS Universal Link for OAuth institutions
+    plaid_webhook_url: str = ""  # URL for Plaid webhook notifications
 
     @property
     def plaid_active_secret(self) -> str:
         """Return the Plaid secret matching the current environment."""
-        if self.plaid_env == "production":
+        if self.plaid_env in ("development", "production"):
             return self.plaid_production_secret
         return self.plaid_sandbox_secret
 

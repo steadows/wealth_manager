@@ -83,8 +83,17 @@ final class AdvisorService: AdvisoryServiceProtocol {
 
         for try await line in bytes.lines {
             try Task.checkCancellation()
-            if let chunk = parseSSELine(line) {
-                continuation.yield(chunk)
+            guard line.hasPrefix("data: ") else { continue }
+            let payload = String(line.dropFirst(6))
+            if payload == "[DONE]" { break }
+
+            // Backend JSON-encodes chunks so newlines survive SSE transport.
+            // Decode the JSON string to restore them; fall back to raw payload.
+            if let data = payload.data(using: .utf8),
+               let decoded = try? JSONDecoder().decode(String.self, from: data) {
+                continuation.yield(decoded)
+            } else {
+                continuation.yield(payload)
             }
         }
         continuation.finish()
@@ -122,14 +131,5 @@ final class AdvisorService: AdvisoryServiceProtocol {
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
 
         return request
-    }
-
-    /// Parses a `data: <text>` SSE line, returning the text payload.
-    /// Backend emits plain-text chunks (not JSON-encoded).
-    private func parseSSELine(_ line: String) -> String? {
-        guard line.hasPrefix("data: ") else { return nil }
-        let payload = String(line.dropFirst(6))
-        guard payload != "[DONE]" else { return nil }
-        return payload
     }
 }

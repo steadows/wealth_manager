@@ -30,12 +30,17 @@ enum Endpoint {
 
     // Plaid
     case createLinkToken
+    case createHostedLinkToken
     case exchangeToken(publicToken: String)
+    case resolveSession(linkToken: String)
     case plaidSync(accountId: UUID)
 
     // Sync
     case syncPull(since: Date?)
     case syncPush(ClientChangesDTO)
+
+    // Transactions
+    case listTransactions(accountId: UUID, limit: Int = 50, offset: Int = 0)
 
     // Advisory
     case advisorChat(message: String, conversationId: UUID?)
@@ -71,10 +76,16 @@ extension Endpoint {
             return "/api/v1/accounts/\(id.uuidString)"
         case .createLinkToken:
             return "/api/v1/plaid/link-token"
+        case .createHostedLinkToken:
+            return "/api/v1/plaid/hosted-link-token"
         case .exchangeToken:
             return "/api/v1/plaid/exchange-token"
+        case .resolveSession:
+            return "/api/v1/plaid/resolve-session"
         case .plaidSync(let accountId):
             return "/api/v1/plaid/sync/\(accountId.uuidString)"
+        case .listTransactions(let accountId, _, _):
+            return "/api/v1/transactions/\(accountId.uuidString)"
         case .syncPull:
             return "/api/v1/sync"
         case .syncPush:
@@ -95,10 +106,11 @@ extension Endpoint {
     var method: HTTPMethod {
         switch self {
         case .login, .refreshToken, .createAccount, .createLinkToken,
-             .exchangeToken, .plaidSync, .syncPush, .advisorChat:
+             .createHostedLinkToken, .exchangeToken, .resolveSession,
+             .plaidSync, .syncPush, .advisorChat:
             return .post
-        case .health, .me, .listAccounts, .getAccount, .syncPull,
-             .getBriefing, .getHealthScore, .getAlerts, .annualReview:
+        case .health, .me, .listAccounts, .getAccount, .listTransactions,
+             .syncPull, .getBriefing, .getHealthScore, .getAlerts, .annualReview:
             return .get
         case .updateAccount:
             return .patch
@@ -126,6 +138,11 @@ extension Endpoint {
                 URLQueryItem(name: "offset", value: "\(offset)"),
                 URLQueryItem(name: "limit", value: "\(limit)"),
             ]
+        case .listTransactions(_, let limit, let offset):
+            return [
+                URLQueryItem(name: "limit", value: "\(limit)"),
+                URLQueryItem(name: "offset", value: "\(offset)"),
+            ]
         case .getBriefing(let period):
             return [URLQueryItem(name: "period", value: period)]
         case .annualReview(let year):
@@ -147,6 +164,10 @@ extension Endpoint {
         case .exchangeToken(let publicToken):
             return try? JSONSerialization.data(
                 withJSONObject: ["public_token": publicToken]
+            )
+        case .resolveSession(let linkToken):
+            return try? JSONSerialization.data(
+                withJSONObject: ["link_token": linkToken]
             )
         case .createAccount(let dto):
             return try? encoder.encode(dto)

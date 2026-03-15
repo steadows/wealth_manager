@@ -31,7 +31,7 @@ enum PlaidLinkResult: Equatable {
 
 /// Abstracts the platform-specific Plaid Link presentation.
 ///
-/// On macOS, the existing WKWebView flow is used.
+/// On macOS, Hosted Link via ASWebAuthenticationSession is used.
 /// On iOS, the native Plaid Link SDK (LinkKit) is used.
 protocol PlaidLinkHandlerProtocol: Sendable {
     /// Prepares the handler with a link token obtained from the backend.

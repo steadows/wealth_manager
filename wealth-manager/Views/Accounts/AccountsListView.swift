@@ -5,6 +5,7 @@ struct AccountsListView: View {
 
     @Bindable var viewModel: AccountsViewModel
     @Binding var selection: Account?
+    var plaidService: PlaidLinkServiceProtocol?
 
     @State private var showingAddSheet = false
 
@@ -36,15 +37,23 @@ struct AccountsListView: View {
         .searchable(text: $viewModel.searchText, prompt: "Search accounts")
         .toolbar { toolbarContent }
         .sheet(isPresented: $showingAddSheet) {
-            AddAccountView { newAccount in
-                Task {
-                    do {
-                        try await viewModel.addAccount(newAccount)
-                    } catch {
-                        viewModel.error = error
+            AddAccountView(
+                onSave: { newAccount in
+                    Task {
+                        do {
+                            try await viewModel.addAccount(newAccount)
+                        } catch {
+                            viewModel.error = error
+                        }
                     }
-                }
-            }
+                },
+                onPlaidLinked: { linkedAccounts in
+                    Task {
+                        await viewModel.upsertLinkedAccounts(linkedAccounts)
+                    }
+                },
+                plaidService: plaidService
+            )
         }
         .alert("Error", isPresented: Binding(
             get: { viewModel.error != nil },

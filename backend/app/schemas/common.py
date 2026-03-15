@@ -1,8 +1,14 @@
 """Common/shared Pydantic schemas."""
 
-from typing import Generic, TypeVar
+from decimal import Decimal
+from typing import Annotated, Generic, TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, PlainSerializer
+
+# Pydantic v2 serializes Decimal as string in JSON mode.
+# Swift's Decimal Codable expects a JSON number.
+# This annotated type ensures Decimal → float in JSON output.
+JsonDecimal = Annotated[Decimal, PlainSerializer(lambda v: float(v), return_type=float, when_used="json")]
 
 T = TypeVar("T")
 

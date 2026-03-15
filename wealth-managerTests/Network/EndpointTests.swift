@@ -210,4 +210,66 @@ struct EndpointTests {
         let endpoint = Endpoint.listAccounts()
         #expect(endpoint.requiresAuth)
     }
+
+    // MARK: - Hosted Link Endpoints
+
+    @Test("plaid hosted link token: correct path")
+    func plaidHostedLinkTokenPath() {
+        let endpoint = Endpoint.createHostedLinkToken
+        #expect(endpoint.path == "/api/v1/plaid/hosted-link-token")
+    }
+
+    @Test("plaid hosted link token: POST method")
+    func plaidHostedLinkTokenIsPost() {
+        let endpoint = Endpoint.createHostedLinkToken
+        #expect(endpoint.method == .post)
+    }
+
+    @Test("plaid hosted link token: requires auth")
+    func plaidHostedLinkTokenRequiresAuth() {
+        let endpoint = Endpoint.createHostedLinkToken
+        #expect(endpoint.requiresAuth)
+    }
+
+    @Test("plaid hosted link token: no body")
+    func plaidHostedLinkTokenNoBody() {
+        let endpoint = Endpoint.createHostedLinkToken
+        #expect(endpoint.body == nil)
+    }
+
+    @Test("plaid resolve session: correct path")
+    func plaidResolveSessionPath() {
+        let endpoint = Endpoint.resolveSession(linkToken: "link-hosted-abc")
+        #expect(endpoint.path == "/api/v1/plaid/resolve-session")
+    }
+
+    @Test("plaid resolve session: POST method")
+    func plaidResolveSessionIsPost() {
+        let endpoint = Endpoint.resolveSession(linkToken: "link-hosted-abc")
+        #expect(endpoint.method == .post)
+    }
+
+    @Test("plaid resolve session: requires auth")
+    func plaidResolveSessionRequiresAuth() {
+        let endpoint = Endpoint.resolveSession(linkToken: "link-hosted-abc")
+        #expect(endpoint.requiresAuth)
+    }
+
+    @Test("plaid resolve session: body contains link_token")
+    func plaidResolveSessionBody() throws {
+        let endpoint = Endpoint.resolveSession(linkToken: "link-hosted-abc123")
+        let body = try #require(endpoint.body)
+        let json = try JSONSerialization.jsonObject(with: body) as? [String: Any]
+        #expect(json?["link_token"] as? String == "link-hosted-abc123")
+    }
+
+    @Test("plaid resolve session: makeURLRequest constructs valid URL")
+    func plaidResolveSessionURLRequest() throws {
+        let baseURL = URL(string: "https://api.example.com")!
+        let endpoint = Endpoint.resolveSession(linkToken: "link-hosted-abc")
+        let request = try endpoint.makeURLRequest(baseURL: baseURL)
+        #expect(request.url?.absoluteString == "https://api.example.com/api/v1/plaid/resolve-session")
+        #expect(request.httpMethod == "POST")
+        #expect(request.value(forHTTPHeaderField: "Content-Type") == "application/json")
+    }
 }

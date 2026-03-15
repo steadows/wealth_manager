@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 // MARK: - APIClientProtocol
 
@@ -18,6 +19,10 @@ final class APIClient: APIClientProtocol, @unchecked Sendable {
     private let session: URLSession
     private let tokenProvider: TokenProvider
     private let decoder: JSONDecoder
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.wealthmanager",
+        category: "APIClient"
+    )
 
     init(
         baseURL: URL,
@@ -32,15 +37,31 @@ final class APIClient: APIClientProtocol, @unchecked Sendable {
         decoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let string = try container.decode(String.self)
-            if let date = ISO8601DateFormatter().date(from: string) {
-                return date
+
+            // 1. Standard ISO8601 (no fractional seconds)
+            let iso = ISO8601DateFormatter()
+            if let date = iso.date(from: string) { return date }
+
+            // 2. ISO8601 with milliseconds (3 digits)
+            iso.formatOptions.insert(.withFractionalSeconds)
+            if let date = iso.date(from: string) { return date }
+
+            // 3. Python datetime microseconds (6 digits) — "2026-03-14T22:30:21.411902Z"
+            //    and timezone offset format — "2026-03-14T22:30:21.411902+00:00"
+            let df = DateFormatter()
+            df.locale = Locale(identifier: "en_US_POSIX")
+            df.timeZone = TimeZone(identifier: "UTC")
+            for fmt in [
+                "yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXXXX",  // +00:00 offset
+                "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'",    // Z suffix
+                "yyyy-MM-dd'T'HH:mm:ssXXXXX",         // no fractional, offset
+                "yyyy-MM-dd'T'HH:mm:ss.SSSSSS",       // microseconds, no timezone
+                "yyyy-MM-dd'T'HH:mm:ss",              // no fractional, no timezone
+            ] {
+                df.dateFormat = fmt
+                if let date = df.date(from: string) { return date }
             }
-            // Try with fractional seconds
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions.insert(.withFractionalSeconds)
-            if let date = formatter.date(from: string) {
-                return date
-            }
+
             throw DecodingError.dataCorruptedError(
                 in: container,
                 debugDescription: "Cannot decode date: \(string)"
@@ -51,6 +72,7 @@ final class APIClient: APIClientProtocol, @unchecked Sendable {
 
     func request<T: Decodable>(_ endpoint: Endpoint) async throws -> T {
         var urlRequest = try endpoint.makeURLRequest(baseURL: baseURL)
+        logger.info("→ \(endpoint.method.rawValue) \(urlRequest.url?.absoluteString ?? "nil", privacy: .public)")
 
         // Inject auth header for protected endpoints
         if endpoint.requiresAuth, let token = await tokenProvider.currentAccessToken() {
@@ -61,7 +83,12 @@ final class APIClient: APIClientProtocol, @unchecked Sendable {
 
         // Handle 401: try refresh then retry once
         if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 401 {
+            logger.warning("← 401 Unauthorized, attempting token refresh")
             return try await retryAfterRefresh(endpoint: endpoint)
+        }
+
+        if let httpResponse = response as? HTTPURLResponse {
+            logger.info("← \(httpResponse.statusCode) (\(data.count) bytes)")
         }
 
         return try decodeResponse(data: data, response: response)
@@ -72,7 +99,21 @@ final class APIClient: APIClientProtocol, @unchecked Sendable {
     private func performRequest(_ request: URLRequest) async throws -> (Data, URLResponse) {
         do {
             return try await session.data(for: request)
+        } catch let urlError as URLError {
+            let url = request.url?.absoluteString ?? "unknown"
+            switch urlError.code {
+            case .cannotConnectToHost, .networkConnectionLost:
+                logger.error("Backend unreachable at \(url, privacy: .public) — is the server running?")
+            case .timedOut:
+                logger.error("Request timed out: \(url, privacy: .public) — server may be hung or not running")
+            case .notConnectedToInternet:
+                logger.error("No internet connection")
+            default:
+                logger.error("Network error [\(urlError.code.rawValue)]: \(urlError.localizedDescription, privacy: .public)")
+            }
+            throw APIError.networkError(urlError)
         } catch {
+            logger.error("Unexpected error: \(error.localizedDescription, privacy: .public)")
             throw APIError.networkError(error)
         }
     }
@@ -135,6 +176,8 @@ final class APIClient: APIClientProtocol, @unchecked Sendable {
             do {
                 return try decoder.decode(T.self, from: data)
             } catch let directError {
+                let preview = String(data: data.prefix(500), encoding: .utf8) ?? "<binary>"
+                logger.error("Decode failed for \(T.self): \(directError.localizedDescription, privacy: .public)\nResponse body: \(preview, privacy: .public)")
                 throw APIError.decodingError(directError)
             }
         }

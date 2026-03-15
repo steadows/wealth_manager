@@ -2,6 +2,8 @@ import Foundation
 
 /// ViewModel for the account detail view with transactions.
 /// Supports paginated loading via `loadMoreTransactions()`.
+/// Falls back to fetching from the backend API when the local
+/// SwiftData store has no transactions for the account.
 @Observable
 final class AccountDetailViewModel {
 
@@ -27,12 +29,18 @@ final class AccountDetailViewModel {
     // MARK: - Dependencies
 
     private let transactionRepo: TransactionRepository
+    private let apiClient: APIClientProtocol?
 
     // MARK: - Init
 
-    init(account: Account, transactionRepo: TransactionRepository) {
+    init(
+        account: Account,
+        transactionRepo: TransactionRepository,
+        apiClient: APIClientProtocol? = nil
+    ) {
         self.account = account
         self.transactionRepo = transactionRepo
+        self.apiClient = apiClient
     }
 
     // MARK: - Computed
@@ -60,6 +68,8 @@ final class AccountDetailViewModel {
     // MARK: - Actions
 
     /// Loads the first page of transactions for the current account.
+    ///
+    /// Fetches from backend API if available, falls back to local SwiftData.
     func loadTransactions() async {
         isLoading = true
         error = nil
@@ -67,14 +77,42 @@ final class AccountDetailViewModel {
         transactions = []
 
         do {
-            let page = try await transactionRepo.fetchByAccount(
-                account.id,
-                limit: Self.pageSize,
-                offset: 0
-            )
-            transactions = page
-            currentOffset = page.count
-            hasMorePages = page.count >= Self.pageSize
+            if let client = apiClient {
+                // Fetch from backend API
+                let response: TransactionListResponseDTO = try await client.request(
+                    .listTransactions(accountId: account.id, limit: Self.pageSize, offset: 0)
+                )
+                let fetched = response.transactions.map { dto in
+                    let category = TransactionCategory(rawValue: dto.category) ?? .other
+                    return Transaction(
+                        id: dto.id,
+                        plaidTransactionId: dto.plaidTransactionId,
+                        account: account,
+                        amount: dto.amount,
+                        date: dto.date,
+                        merchantName: dto.merchantName,
+                        category: category,
+                        subcategory: dto.subcategory,
+                        note: dto.note,
+                        isRecurring: dto.isRecurring,
+                        isPending: dto.isPending,
+                        createdAt: dto.createdAt
+                    )
+                }
+                transactions = fetched
+                currentOffset = fetched.count
+                hasMorePages = fetched.count >= Self.pageSize
+            } else {
+                // Fallback to local SwiftData
+                let page = try await transactionRepo.fetchByAccount(
+                    account.id,
+                    limit: Self.pageSize,
+                    offset: 0
+                )
+                transactions = page
+                currentOffset = page.count
+                hasMorePages = page.count >= Self.pageSize
+            }
         } catch {
             self.error = error
         }
@@ -113,4 +151,5 @@ final class AccountDetailViewModel {
         searchText = ""
         selectedCategory = nil
     }
+
 }

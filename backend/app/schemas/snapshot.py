@@ -6,6 +6,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.common import JsonDecimal
+
 
 class SnapshotCreate(BaseModel):
     """Schema for creating a net worth snapshot."""
@@ -23,5 +25,5 @@ class SnapshotResponse(BaseModel):
     id: uuid.UUID
     user_id: uuid.UUID
     date: datetime
-    total_assets: Decimal
-    total_liabilities: Decimal
+    total_assets: JsonDecimal
+    total_liabilities: JsonDecimal

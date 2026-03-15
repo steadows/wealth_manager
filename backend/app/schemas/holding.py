@@ -6,6 +6,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.common import JsonDecimal
+
 
 class HoldingCreate(BaseModel):
     """Schema for creating a new investment holding."""
@@ -43,9 +45,9 @@ class HoldingResponse(BaseModel):
     account_id: uuid.UUID
     security_name: str
     ticker_symbol: str | None = None
-    quantity: Decimal
-    cost_basis: Decimal | None = None
-    current_price: Decimal
+    quantity: JsonDecimal
+    cost_basis: JsonDecimal | None = None
+    current_price: JsonDecimal
     holding_type: str
     asset_class: str
     purchase_date: datetime | None = None

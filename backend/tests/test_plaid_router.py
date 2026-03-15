@@ -59,8 +59,16 @@ async def plaid_session(plaid_engine) -> AsyncSession:
 
 @pytest.fixture
 def mock_plaid_service() -> MagicMock:
-    """Create a mock PlaidService."""
-    return MagicMock()
+    """Create a mock PlaidService with sensible sync defaults."""
+    mock = MagicMock()
+    mock.sync_transactions.return_value = {
+        "added": [],
+        "modified": [],
+        "removed": [],
+        "next_cursor": "cursor-123",
+        "has_more": False,
+    }
+    return mock
 
 
 @pytest.fixture
@@ -224,3 +232,198 @@ class TestSyncEndpoint:
             headers=auth_headers,
         )
         assert response.status_code == 404
+
+
+class TestHostedLinkTokenEndpoint:
+    """Tests for POST /api/v1/plaid/hosted-link-token."""
+
+    @pytest.mark.anyio
+    async def test_returns_link_token_and_hosted_url(
+        self,
+        plaid_client: AsyncClient,
+        mock_plaid_service: MagicMock,
+        auth_headers: dict,
+    ) -> None:
+        """Should return link_token and hosted_link_url on success."""
+        mock_plaid_service.create_hosted_link_token.return_value = (
+            "link-sandbox-hosted-abc",
+            "https://hosted.plaid.com/sessions/test-session",
+        )
+
+        response = await plaid_client.post(
+            "/api/v1/plaid/hosted-link-token",
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["link_token"] == "link-sandbox-hosted-abc"
+        assert data["hosted_link_url"] == "https://hosted.plaid.com/sessions/test-session"
+
+    @pytest.mark.anyio
+    async def test_service_error_returns_502(
+        self,
+        plaid_client: AsyncClient,
+        mock_plaid_service: MagicMock,
+        auth_headers: dict,
+    ) -> None:
+        """Should return 502 when PlaidService raises an error."""
+        mock_plaid_service.create_hosted_link_token.side_effect = Exception(
+            "Plaid API error"
+        )
+
+        response = await plaid_client.post(
+            "/api/v1/plaid/hosted-link-token",
+            headers=auth_headers,
+        )
+        assert response.status_code == 502
+        assert "hosted link token" in response.json()["detail"].lower()
+
+
+class TestResolveSessionEndpoint:
+    """Tests for POST /api/v1/plaid/resolve-session."""
+
+    @pytest.mark.anyio
+    async def test_complete_session_returns_accounts(
+        self,
+        plaid_client: AsyncClient,
+        plaid_session: AsyncSession,
+        mock_plaid_service: MagicMock,
+        auth_headers: dict,
+    ) -> None:
+        """Should return status=complete with accounts when session is done."""
+        mock_plaid_service.resolve_hosted_session.return_value = {
+            "status": "complete",
+            "public_token": "public-sandbox-hosted-xyz",
+            "access_token": "access-sandbox-hosted-789",
+            "item_id": "item-hosted-abc",
+        }
+        mock_plaid_service.get_accounts.return_value = [
+            {
+                "account_id": "plaid-acct-hosted-1",
+                "name": "Hosted Checking",
+                "official_name": "Test Bank Checking",
+                "type": "depository",
+                "subtype": "checking",
+                "balances": {"current": 2500.00, "available": 2400.00},
+            }
+        ]
+
+        response = await plaid_client.post(
+            "/api/v1/plaid/resolve-session",
+            json={"link_token": "link-sandbox-hosted-token"},
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "complete"
+        assert data["accounts"] is not None
+        assert len(data["accounts"]) >= 1
+
+    @pytest.mark.anyio
+    async def test_pending_session_returns_pending(
+        self,
+        plaid_client: AsyncClient,
+        mock_plaid_service: MagicMock,
+        auth_headers: dict,
+    ) -> None:
+        """Should return status=pending when session is not yet complete."""
+        mock_plaid_service.resolve_hosted_session.return_value = {
+            "status": "pending",
+        }
+
+        response = await plaid_client.post(
+            "/api/v1/plaid/resolve-session",
+            json={"link_token": "link-sandbox-hosted-pending"},
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "pending"
+        assert data["accounts"] is None
+
+    @pytest.mark.anyio
+    async def test_missing_link_token_returns_422(
+        self,
+        plaid_client: AsyncClient,
+        auth_headers: dict,
+    ) -> None:
+        """Should return 422 when link_token is missing from request body."""
+        response = await plaid_client.post(
+            "/api/v1/plaid/resolve-session",
+            json={},
+            headers=auth_headers,
+        )
+        assert response.status_code == 422
+
+    @pytest.mark.anyio
+    async def test_service_error_returns_502(
+        self,
+        plaid_client: AsyncClient,
+        mock_plaid_service: MagicMock,
+        auth_headers: dict,
+    ) -> None:
+        """Should return 502 when PlaidService raises during resolve."""
+        mock_plaid_service.resolve_hosted_session.side_effect = Exception(
+            "Plaid API error"
+        )
+
+        response = await plaid_client.post(
+            "/api/v1/plaid/resolve-session",
+            json={"link_token": "link-sandbox-hosted-error"},
+            headers=auth_headers,
+        )
+        assert response.status_code == 502
+
+
+class TestRegressionExistingEndpoints:
+    """Regression tests — existing endpoints still work after hosted link changes."""
+
+    @pytest.mark.anyio
+    async def test_link_token_endpoint_still_works(
+        self,
+        plaid_client: AsyncClient,
+        mock_plaid_service: MagicMock,
+        auth_headers: dict,
+    ) -> None:
+        """POST /plaid/link-token should still function normally."""
+        mock_plaid_service.create_link_token.return_value = "link-sandbox-regression"
+
+        response = await plaid_client.post(
+            "/api/v1/plaid/link-token",
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+        assert response.json()["link_token"] == "link-sandbox-regression"
+
+    @pytest.mark.anyio
+    async def test_exchange_token_endpoint_still_works(
+        self,
+        plaid_client: AsyncClient,
+        plaid_session: AsyncSession,
+        mock_plaid_service: MagicMock,
+        auth_headers: dict,
+    ) -> None:
+        """POST /plaid/exchange-token should still function normally."""
+        mock_plaid_service.exchange_public_token.return_value = (
+            "access-sandbox-regression",
+            "item-sandbox-regression",
+        )
+        mock_plaid_service.get_accounts.return_value = [
+            {
+                "account_id": "plaid-acct-regression",
+                "name": "Regression Checking",
+                "type": "depository",
+                "subtype": "checking",
+                "balances": {"current": 500.00, "available": 450.00},
+            }
+        ]
+
+        response = await plaid_client.post(
+            "/api/v1/plaid/exchange-token",
+            json={"public_token": "public-sandbox-regression"},
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert "accounts" in data
+        assert len(data["accounts"]) >= 1

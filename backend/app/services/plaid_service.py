@@ -16,8 +16,10 @@ from plaid.model.country_code import CountryCode
 from plaid.model.item_public_token_exchange_request import (
     ItemPublicTokenExchangeRequest,
 )
+from plaid.model.link_token_create_hosted_link import LinkTokenCreateHostedLink
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
+from plaid.model.link_token_get_request import LinkTokenGetRequest
 from plaid.model.products import Products
 from plaid.model.sandbox_item_fire_webhook_request import (
     SandboxItemFireWebhookRequest,
@@ -46,6 +48,7 @@ _JWK_CACHE_TTL_SECONDS = 3600  # 1 hour
 
 _PLAID_ENV_MAP = {
     "sandbox": plaid.Environment.Sandbox,
+    "development": plaid.Environment.Production,
     "production": plaid.Environment.Production,
 }
 
@@ -75,8 +78,14 @@ class PlaidService:
         sec = secret or settings.plaid_active_secret
         env = environment or settings.plaid_env
 
+        host = _PLAID_ENV_MAP.get(env, plaid.Environment.Sandbox)
+        logger.info(
+            "Initializing PlaidService: env=%s, host=%s, client_id=%s...",
+            env, host, cid[:8] if cid else "none",
+        )
+
         configuration = plaid.Configuration(
-            host=_PLAID_ENV_MAP.get(env, plaid.Environment.Sandbox),
+            host=host,
             api_key={"clientId": cid, "secret": sec},
         )
         api_client = plaid.ApiClient(configuration)
@@ -98,8 +107,167 @@ class PlaidService:
             language="en",
             user=LinkTokenCreateRequestUser(client_user_id=str(user_id)),
         )
+        logger.info("Creating link token for user=%s", user_id)
         response = self._client.link_token_create(request)
+        logger.info("Link token created: %s...", response.link_token[:30])
         return response.link_token
+
+    def create_hosted_link_token(self, user_id: uuid.UUID) -> tuple[str, str]:
+        """Create a Plaid Hosted Link token for the given user.
+
+        Uses LinkTokenCreateHostedLink to generate a hosted URL that opens
+        Plaid Link in a system browser via ASWebAuthenticationSession.
+
+        Args:
+            user_id: The authenticated user's UUID.
+
+        Returns:
+            Tuple of (link_token, hosted_link_url).
+
+        Raises:
+            plaid.ApiException: If the Plaid API call fails.
+        """
+        settings = get_settings()
+        hosted_link_params = LinkTokenCreateHostedLink(
+            completion_redirect_uri="wealthmanager://plaid-link-complete",
+        )
+        request_kwargs: dict = {
+            "products": [Products("transactions")],
+            "client_name": "Wealth Manager",
+            "country_codes": [CountryCode("US")],
+            "language": "en",
+            "user": LinkTokenCreateRequestUser(client_user_id=str(user_id)),
+            "hosted_link": hosted_link_params,
+        }
+        if settings.plaid_redirect_uri:
+            request_kwargs["redirect_uri"] = settings.plaid_redirect_uri
+
+        request = LinkTokenCreateRequest(**request_kwargs)
+
+        logger.info("Creating hosted link token for user=%s", user_id)
+        response = self._client.link_token_create(request)
+        link_token = response.link_token
+        hosted_link_url = response.hosted_link_url
+
+        logger.info(
+            "Hosted link token created: token=%s..., url=%s",
+            link_token[:30],
+            hosted_link_url,
+        )
+        return link_token, hosted_link_url
+
+    def resolve_hosted_session(self, link_token: str) -> dict:
+        """Resolve a Plaid Hosted Link session by checking its status.
+
+        Calls /link/token/get to inspect the link session. If the session
+        completed successfully, extracts the public_token and exchanges it
+        for an access_token.
+
+        Args:
+            link_token: The link_token from a previous hosted link token creation.
+
+        Returns:
+            Dict with keys:
+                - status: "complete", "pending", "exited", "expired", or "unknown"
+                - public_token: The public token (only when status is "complete")
+                - access_token: The access token (only when status is "complete")
+                - item_id: The Plaid item ID (only when status is "complete")
+
+        Raises:
+            plaid.ApiException: If the Plaid API call fails.
+        """
+        logger.info("Resolving hosted session for link_token=%s...", link_token[:30])
+
+        request = LinkTokenGetRequest(link_token=link_token)
+        response = self._client.link_token_get(request)
+
+        # Check expiration
+        if hasattr(response, "expiration") and response.expiration is not None:
+            from datetime import datetime, timezone
+
+            now = datetime.now(timezone.utc)
+            if response.expiration.replace(tzinfo=timezone.utc) < now:
+                logger.warning("Link token expired: %s", link_token[:30])
+                return {"status": "expired"}
+
+        # Inspect link sessions
+        sessions = getattr(response, "link_sessions", None) or []
+        logger.info(
+            "link_token_get response for %s...: %d sessions, keys=%s",
+            link_token[:30],
+            len(sessions),
+            list(response.to_dict().keys()),
+        )
+        if not sessions:
+            logger.info("No sessions found for link_token=%s... — status pending", link_token[:30])
+            return {"status": "pending"}
+
+        # Check the most recent session
+        latest_session = sessions[-1]
+        session_dict = latest_session.to_dict() if hasattr(latest_session, "to_dict") else str(latest_session)
+        logger.info("Latest session for %s...: %s", link_token[:30], session_dict)
+
+        # Check for successful completion — try both on_success and results.item_add_result
+        on_success = getattr(latest_session, "on_success", None)
+        if on_success is None:
+            # Newer API uses results.item_add_results
+            results = getattr(latest_session, "results", None)
+            if results is not None:
+                item_add_results = getattr(results, "item_add_results", None) or []
+                if item_add_results:
+                    # Get public_token from first item add result
+                    first_result = item_add_results[0]
+                    public_token = getattr(first_result, "public_token", None)
+                    if public_token:
+                        logger.info(
+                            "Session complete (via results) for link_token=%s..., exchanging public_token",
+                            link_token[:30],
+                        )
+                        access_token, item_id = self.exchange_public_token(public_token)
+                        logger.info(
+                            "Token exchanged: item_id=%s for link_token=%s...",
+                            item_id,
+                            link_token[:30],
+                        )
+                        return {
+                            "status": "complete",
+                            "public_token": public_token,
+                            "access_token": access_token,
+                            "item_id": item_id,
+                        }
+        if on_success is not None:
+            public_token = on_success.public_token
+            logger.info(
+                "Session complete for link_token=%s..., exchanging public_token",
+                link_token[:30],
+            )
+            access_token, item_id = self.exchange_public_token(public_token)
+            logger.info(
+                "Token exchanged: item_id=%s for link_token=%s...",
+                item_id,
+                link_token[:30],
+            )
+            return {
+                "status": "complete",
+                "public_token": public_token,
+                "access_token": access_token,
+                "item_id": item_id,
+            }
+
+        # Check for exit (user cancelled or error)
+        on_exit = getattr(latest_session, "exit", None) or getattr(latest_session, "on_exit", None)
+        if on_exit is not None:
+            logger.info("Session exited for link_token=%s...", link_token[:30])
+            return {"status": "exited"}
+
+        # Session exists but hasn't finished yet
+        finished_at = getattr(latest_session, "finished_at", None)
+        if finished_at is None:
+            logger.info("Session in progress for link_token=%s...", link_token[:30])
+            return {"status": "pending"}
+
+        logger.warning("Unknown session state for link_token=%s...", link_token[:30])
+        return {"status": "unknown"}
 
     def exchange_public_token(self, public_token: str) -> tuple[str, str]:
         """Exchange a Plaid public token for an access token.

@@ -143,15 +143,126 @@ struct PlaidLinkServiceTests {
         }
     }
 
-    // MARK: - Link URL Construction
+    // MARK: - Create Hosted Link Token
 
-    @Test("linkURL: constructs correct Plaid Link URL")
-    func linkURLConstruction() {
-        let service = makeService()
+    @Test("createHostedLinkToken: returns link token and URL from backend")
+    func createHostedLinkTokenSuccess() async throws {
+        let mockClient = MockAPIClient()
+        mockClient.responses["/api/v1/plaid/hosted-link-token"] = PlaidHostedLinkResponseDTO(
+            linkToken: "link-hosted-abc123",
+            hostedLinkUrl: "https://hosted.plaid.com/link/session-xyz"
+        )
+        let service = makeService(apiClient: mockClient)
 
-        let url = service.linkURL(for: "link-sandbox-token123")
+        let (token, url) = try await service.createHostedLinkToken()
 
-        #expect(url.absoluteString == "https://cdn.plaid.com/link/v2/stable/link.html?isWebview=true&token=link-sandbox-token123")
+        #expect(token == "link-hosted-abc123")
+        #expect(url == URL(string: "https://hosted.plaid.com/link/session-xyz")!)
+        #expect(mockClient.requestLog.count == 1)
+        #expect(mockClient.requestLog[0].path == "/api/v1/plaid/hosted-link-token")
+        #expect(mockClient.requestLog[0].method == .post)
+    }
+
+    @Test("createHostedLinkToken: throws invalidURL when backend returns bad URL")
+    func createHostedLinkTokenInvalidURL() async {
+        let mockClient = MockAPIClient()
+        mockClient.responses["/api/v1/plaid/hosted-link-token"] = PlaidHostedLinkResponseDTO(
+            linkToken: "link-hosted-abc",
+            hostedLinkUrl: ""
+        )
+        let service = makeService(apiClient: mockClient)
+
+        await #expect(throws: APIError.self) {
+            _ = try await service.createHostedLinkToken()
+        }
+    }
+
+    @Test("createHostedLinkToken: throws on network error")
+    func createHostedLinkTokenNetworkError() async {
+        let mockClient = MockAPIClient()
+        mockClient.shouldThrow = APIError.networkError(NSError(domain: "test", code: -1))
+        let service = makeService(apiClient: mockClient)
+
+        await #expect(throws: APIError.self) {
+            _ = try await service.createHostedLinkToken()
+        }
+    }
+
+    // MARK: - Resolve Session
+
+    @Test("resolveSession: returns accounts when status is complete")
+    func resolveSessionSuccess() async throws {
+        let mockClient = MockAPIClient()
+        let accountId = UUID()
+        let dto = makeSampleAccountDTO(id: accountId, institutionName: "Wells Fargo", accountName: "Savings")
+        mockClient.responses["/api/v1/plaid/resolve-session"] = PlaidResolveSessionResponseDTO(
+            status: "complete",
+            accounts: [dto]
+        )
+        let service = makeService(apiClient: mockClient)
+
+        let accounts = try await service.resolveSession(linkToken: "link-hosted-token")
+
+        #expect(accounts.count == 1)
+        #expect(accounts[0].id == accountId)
+        #expect(accounts[0].institutionName == "Wells Fargo")
+        #expect(accounts[0].accountName == "Savings")
+        #expect(mockClient.requestLog.count == 1)
+        #expect(mockClient.requestLog[0].path == "/api/v1/plaid/resolve-session")
+        #expect(mockClient.requestLog[0].method == .post)
+    }
+
+    @Test("resolveSession: returns empty array when complete with nil accounts")
+    func resolveSessionCompleteNoAccounts() async throws {
+        let mockClient = MockAPIClient()
+        mockClient.responses["/api/v1/plaid/resolve-session"] = PlaidResolveSessionResponseDTO(
+            status: "complete",
+            accounts: nil
+        )
+        let service = makeService(apiClient: mockClient)
+
+        let accounts = try await service.resolveSession(linkToken: "link-hosted-token")
+
+        #expect(accounts.isEmpty)
+    }
+
+    @Test("resolveSession: throws sessionNotComplete when status is pending")
+    func resolveSessionPending() async {
+        let mockClient = MockAPIClient()
+        mockClient.responses["/api/v1/plaid/resolve-session"] = PlaidResolveSessionResponseDTO(
+            status: "pending",
+            accounts: nil
+        )
+        let service = makeService(apiClient: mockClient)
+
+        await #expect(throws: PlaidSessionError.self) {
+            _ = try await service.resolveSession(linkToken: "link-hosted-token")
+        }
+    }
+
+    @Test("resolveSession: throws sessionNotComplete when status is exited")
+    func resolveSessionExited() async {
+        let mockClient = MockAPIClient()
+        mockClient.responses["/api/v1/plaid/resolve-session"] = PlaidResolveSessionResponseDTO(
+            status: "exited",
+            accounts: nil
+        )
+        let service = makeService(apiClient: mockClient)
+
+        await #expect(throws: PlaidSessionError.self) {
+            _ = try await service.resolveSession(linkToken: "link-hosted-token")
+        }
+    }
+
+    @Test("resolveSession: throws on network error")
+    func resolveSessionNetworkError() async {
+        let mockClient = MockAPIClient()
+        mockClient.shouldThrow = APIError.networkError(NSError(domain: "test", code: -1))
+        let service = makeService(apiClient: mockClient)
+
+        await #expect(throws: APIError.self) {
+            _ = try await service.resolveSession(linkToken: "link-hosted-token")
+        }
     }
 
     // MARK: - Protocol Conformance

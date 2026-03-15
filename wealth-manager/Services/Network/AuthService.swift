@@ -1,5 +1,13 @@
 import Foundation
 
+// MARK: - Auth Notifications
+
+extension Notification.Name {
+    /// Posted when authentication is irrecoverably lost (token expired and refresh failed).
+    /// Observers should reset UI to the sign-in screen.
+    static let authSessionExpired = Notification.Name("WMAuthSessionExpired")
+}
+
 // MARK: - AuthService
 
 /// Manages authentication state: sign in with Apple, token storage, refresh.
@@ -53,9 +61,18 @@ final class AuthService: TokenProvider, @unchecked Sendable {
             throw APIError.unauthorized
         }
 
-        let response: TokenResponseDTO = try await apiClient.request(.refreshToken)
-        try tokenStore.saveAccessToken(response.accessToken)
-        return response.accessToken
+        do {
+            let response: TokenResponseDTO = try await apiClient.request(.refreshToken)
+            try tokenStore.saveAccessToken(response.accessToken)
+            return response.accessToken
+        } catch {
+            // Refresh failed (likely expired token) — clear stale token
+            // so isAuthenticated becomes false and app redirects to sign-in.
+            try? tokenStore.deleteAccessToken()
+            currentUserId = nil
+            NotificationCenter.default.post(name: .authSessionExpired, object: nil)
+            throw APIError.unauthorized
+        }
     }
 
     // MARK: - Dev Sign In

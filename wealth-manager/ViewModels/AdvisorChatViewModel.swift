@@ -61,19 +61,29 @@ final class AdvisorChatViewModel {
         messages.append(userDisplay)
         persistMessage(role: "user", content: trimmed, id: userDisplay.id)
 
+        // Create a placeholder assistant message that updates as chunks arrive
+        let assistantId = UUID()
+        let placeholder = ChatDisplayMessage(role: "assistant", content: "")
+        messages.append(placeholder)
         var accumulated = ""
 
         do {
             let stream = advisoryService.streamChat(message: trimmed, conversationId: conversationId)
             for try await chunk in stream {
                 accumulated += chunk
+                // Replace the last message with updated content
+                let updated = ChatDisplayMessage(id: assistantId, role: "assistant", content: accumulated)
+                messages[messages.count - 1] = updated
             }
 
-            let assistantDisplay = ChatDisplayMessage(role: "assistant", content: accumulated)
-            messages.append(assistantDisplay)
-            persistMessage(role: "assistant", content: accumulated, id: assistantDisplay.id)
+            // Persist the final complete message
+            persistMessage(role: "assistant", content: accumulated, id: assistantId)
             try modelContext.save()
         } catch {
+            // Remove the placeholder if streaming failed with no content
+            if accumulated.isEmpty {
+                messages.removeLast()
+            }
             errorMessage = error.localizedDescription
         }
 

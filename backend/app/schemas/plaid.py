@@ -67,3 +67,27 @@ class SandboxResetLoginResponse(BaseModel):
     """Response after resetting sandbox login."""
 
     reset_login: bool
+
+
+class HostedLinkTokenResponse(BaseModel):
+    """Response containing a hosted Plaid Link token and URL."""
+
+    link_token: str
+    hosted_link_url: str
+
+
+class ResolveSessionRequest(BaseModel):
+    """Request to resolve a Plaid Hosted Link session."""
+
+    link_token: str = Field(..., min_length=1, max_length=500)
+
+
+class ResolveSessionResponse(BaseModel):
+    """Response from resolving a Plaid Hosted Link session.
+
+    status is one of: complete, pending, exited, expired, unknown.
+    accounts is populated only when status is 'complete'.
+    """
+
+    status: str
+    accounts: list[AccountResponse] | None = None

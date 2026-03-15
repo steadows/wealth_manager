@@ -270,7 +270,7 @@ class TestCreateAccount:
         resp = await client.post("/api/v1/accounts/", json=payload, headers=_auth_headers())
         assert resp.status_code == 201
         data = resp.json()["data"]
-        assert Decimal(data["available_balance"]) == Decimal("9500.00")
+        assert data["available_balance"] == 9500.00
         assert data["currency"] == "EUR"
         assert data["is_manual"] is False
 
@@ -329,7 +329,7 @@ class TestCreateAccount:
         }
         resp = await client.post("/api/v1/accounts/", json=payload, headers=_auth_headers())
         assert resp.status_code == 201
-        assert Decimal(resp.json()["data"]["current_balance"]) == Decimal("-250.00")
+        assert resp.json()["data"]["current_balance"] == -250.00
 
 
 class TestUpdateAccount:
@@ -359,7 +359,7 @@ class TestUpdateAccount:
             headers=_auth_headers(),
         )
         assert resp.status_code == 200
-        assert Decimal(resp.json()["data"]["current_balance"]) == Decimal("7777.77")
+        assert resp.json()["data"]["current_balance"] == 7777.77
 
     @pytest.mark.asyncio
     async def test_update_not_found(self, client: AsyncClient) -> None:

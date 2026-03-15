@@ -26,7 +26,7 @@ struct AccountDetailView: View {
             tabContent
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .task {
+        .task(id: viewModel.account.id) {
             await viewModel.loadTransactions()
         }
     }

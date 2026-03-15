@@ -23,6 +23,20 @@ enum APIError: Error, LocalizedError {
         case .decodingError(let error):
             return "Failed to decode response: \(error.localizedDescription)"
         case .networkError(let error):
+            if let urlError = error as? URLError {
+                switch urlError.code {
+                case .cannotConnectToHost, .timedOut:
+                    #if DEBUG
+                    return "Cannot reach backend server. Run: conda run -n wealth-manager uvicorn app.main:app --reload --host 127.0.0.1 --port 8000"
+                    #else
+                    return "Cannot connect to server. Please check your internet connection and try again."
+                    #endif
+                case .notConnectedToInternet:
+                    return "No internet connection. Please check your network settings."
+                default:
+                    break
+                }
+            }
             return "Network error: \(error.localizedDescription)"
         case .noData:
             return "No data received from server"

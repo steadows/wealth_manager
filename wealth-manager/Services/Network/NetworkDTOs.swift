@@ -152,24 +152,59 @@ struct PlaidExchangeResponseDTO: Codable {
     let accounts: [AccountResponseDTO]
 }
 
+/// Response from `POST /api/v1/plaid/hosted-link-token`.
+struct PlaidHostedLinkResponseDTO: Codable {
+    let linkToken: String
+    let hostedLinkUrl: String
+
+    enum CodingKeys: String, CodingKey {
+        case linkToken = "link_token"
+        case hostedLinkUrl = "hosted_link_url"
+    }
+}
+
+/// Response from `POST /api/v1/plaid/resolve-session`.
+struct PlaidResolveSessionResponseDTO: Codable {
+    let status: String
+    let accounts: [AccountResponseDTO]?
+}
+
 // MARK: - Stub DTOs for sync sub-entities
 // These match the backend schemas; full fields added as needed.
 
 struct TransactionResponseDTO: Codable {
     let id: UUID
     let accountId: UUID
+    let plaidTransactionId: String?
     let amount: Decimal
-    let description: String
-    let category: String?
     let date: Date
+    let merchantName: String?
+    let category: String
+    let subcategory: String?
+    let note: String?
+    let isRecurring: Bool
+    let isPending: Bool
     let createdAt: Date
 
     enum CodingKeys: String, CodingKey {
         case id
         case accountId = "account_id"
-        case amount, description, category, date
+        case plaidTransactionId = "plaid_transaction_id"
+        case amount, date
+        case merchantName = "merchant_name"
+        case category, subcategory, note
+        case isRecurring = "is_recurring"
+        case isPending = "is_pending"
         case createdAt = "created_at"
     }
+}
+
+/// Response from `GET /api/v1/transactions/{account_id}`.
+struct TransactionListResponseDTO: Codable {
+    let transactions: [TransactionResponseDTO]
+    let total: Int
+    let limit: Int
+    let offset: Int
 }
 
 struct GoalResponseDTO: Codable {

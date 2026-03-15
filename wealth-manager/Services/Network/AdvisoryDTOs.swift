@@ -51,12 +51,14 @@ struct GoalProgressDTO: Codable {
     let goalType: String
     let targetAmount: Decimal
     let currentAmount: Decimal
+    let targetDate: Date?
 
     enum CodingKeys: String, CodingKey {
         case goalName = "goal_name"
         case goalType = "goal_type"
         case targetAmount = "target_amount"
         case currentAmount = "current_amount"
+        case targetDate = "target_date"
     }
 }
 

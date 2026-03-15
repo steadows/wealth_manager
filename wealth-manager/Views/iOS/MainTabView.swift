@@ -21,6 +21,7 @@ struct MainTabView: View {
     @State private var advisorChatVM: AdvisorChatViewModel?
     @State private var briefingVM: CFOBriefingViewModel?
     @State private var alertsVM: AlertsViewModel?
+    @State private var plaidService: PlaidLinkServiceProtocol?
 
     // MARK: - Tab Sections
 
@@ -116,6 +117,7 @@ struct MainTabView: View {
         advisorChatVM = AdvisorChatViewModel(advisoryService: advisorService, modelContext: modelContext)
         briefingVM = CFOBriefingViewModel(advisoryService: advisorService)
         alertsVM = AlertsViewModel(advisoryService: advisorService)
+        plaidService = PlaidLinkService(apiClient: advisoryAPIClient)
 
         isReady = true
     }
@@ -143,7 +145,7 @@ struct MainTabView: View {
     private var accountsTab: some View {
         NavigationStack {
             if let vm = accountsVM {
-                AccountsListView(viewModel: vm, selection: .constant(nil))
+                AccountsListView(viewModel: vm, selection: .constant(nil), plaidService: plaidService)
                     .navigationTitle("Accounts")
             } else {
                 ProgressView("Loading...")

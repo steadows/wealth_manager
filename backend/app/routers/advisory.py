@@ -1,5 +1,6 @@
 """Advisory, reports, and alerts API endpoints."""
 
+import json
 import uuid
 from decimal import Decimal
 from pathlib import Path
@@ -174,7 +175,9 @@ async def advisor_chat(
             snapshot=snapshot,
             user_message=data.message,
         ):
-            yield f"data: {chunk}\n\n"
+            # JSON-encode the chunk so newlines are safely escaped as \n
+            # within a single data: line. The iOS client JSON-decodes to restore them.
+            yield f"data: {json.dumps(chunk)}\n\n"
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(

@@ -48,6 +48,10 @@ enum AppSection: String, CaseIterable, Identifiable {
 
 /// Three-column NavigationSplitView serving as the app shell.
 struct MainSplitView: View {
+    /// Injected from RootView so all services share the same auth stack.
+    let injectedTokenStore: any TokenStore
+    let injectedAPIClient: APIClient
+
     @State private var selectedSection: AppSection? = .dashboard
     @State private var selectedAccount: Account?
     @State private var selectedGoal: FinancialGoal?
@@ -72,6 +76,8 @@ struct MainSplitView: View {
     @State private var advisorChatVM: AdvisorChatViewModel?
     @State private var briefingVM: CFOBriefingViewModel?
     @State private var alertsVM: AlertsViewModel?
+    @State private var plaidService: PlaidLinkServiceProtocol?
+    @State private var sharedAPIClient: APIClientProtocol?
 
     var body: some View {
         NavigationSplitView {
@@ -120,18 +126,17 @@ struct MainSplitView: View {
             profileRepo: SwiftDataUserProfileRepository(modelContainer: container)
         )
 
-        // Advisory services (AI Advisor + Reports)
+        // Advisory services — reuse the injected API client and token store
         let backendURL = AppEnvironment.backendBaseURL
-        let tokenStore = KeychainTokenStore()
-        let bootstrapProvider = StoredTokenProvider(store: tokenStore)
-        let authClient = APIClient(baseURL: backendURL, tokenProvider: bootstrapProvider)
-        let authService = AuthService(apiClient: authClient, tokenStore: tokenStore)
+        let authService = AuthService(apiClient: injectedAPIClient, tokenStore: injectedTokenStore)
         let advisoryAPIClient = APIClient(baseURL: backendURL, tokenProvider: authService)
         let advisorService = AdvisorService(apiClient: advisoryAPIClient, baseURL: backendURL, tokenProvider: authService)
 
         advisorChatVM = AdvisorChatViewModel(advisoryService: advisorService, modelContext: modelContext)
         briefingVM = CFOBriefingViewModel(advisoryService: advisorService)
         alertsVM = AlertsViewModel(advisoryService: advisorService)
+        plaidService = PlaidLinkService(apiClient: advisoryAPIClient)
+        sharedAPIClient = advisoryAPIClient
 
         isReady = true
     }
@@ -145,7 +150,8 @@ struct MainSplitView: View {
         let container = modelContext.container
         accountDetailVM = AccountDetailViewModel(
             account: account,
-            transactionRepo: SwiftDataTransactionRepository(modelContainer: container)
+            transactionRepo: SwiftDataTransactionRepository(modelContainer: container),
+            apiClient: sharedAPIClient
         )
     }
 
@@ -229,7 +235,7 @@ struct MainSplitView: View {
         switch selectedSection {
         case .accounts:
             if let vm = accountsVM {
-                AccountsListView(viewModel: vm, selection: $selectedAccount)
+                AccountsListView(viewModel: vm, selection: $selectedAccount, plaidService: plaidService)
             }
         case .goals:
             if let vm = goalsVM {

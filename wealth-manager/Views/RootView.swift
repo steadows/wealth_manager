@@ -10,7 +10,7 @@ struct RootView: View {
     @State private var devLoginVM: DevLoginViewModel
     #endif
 
-    private let tokenStore: KeychainTokenStore
+    private let tokenStore: any TokenStore
     private let apiClient: APIClient
     private let authService: AuthService
 
@@ -20,7 +20,11 @@ struct RootView: View {
 
     init() {
         let backendURL = AppEnvironment.backendBaseURL
-        let store = KeychainTokenStore()
+        #if DEBUG
+        let store: any TokenStore = InMemoryTokenStore()
+        #else
+        let store: any TokenStore = KeychainTokenStore()
+        #endif
         let bootstrapProvider = StoredTokenProvider(store: store)
         let client = APIClient(baseURL: backendURL, tokenProvider: bootstrapProvider)
         let service = AuthService(apiClient: client, tokenStore: store)
@@ -41,7 +45,7 @@ struct RootView: View {
         Group {
             if authService.isAuthenticated || didSignIn {
                 #if os(macOS)
-                MainSplitView()
+                MainSplitView(injectedTokenStore: tokenStore, injectedAPIClient: apiClient)
                 #else
                 MainTabView()
                 #endif
@@ -57,6 +61,9 @@ struct RootView: View {
                 signInRequiredView
                 #endif
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .authSessionExpired)) { _ in
+            didSignIn = false
         }
     }
 

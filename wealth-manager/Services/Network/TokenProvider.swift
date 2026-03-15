@@ -40,6 +40,29 @@ struct StoredTokenProvider: TokenProvider {
     }
 }
 
+// MARK: - InMemoryTokenStore
+
+#if DEBUG
+/// In-memory token store for development when Keychain is unavailable or broken.
+/// Tokens persist only for the app session — relaunch requires re-login.
+final class InMemoryTokenStore: TokenStore, @unchecked Sendable {
+    private let lock = NSLock()
+    private var token: String?
+
+    func saveAccessToken(_ token: String) throws {
+        lock.withLock { self.token = token }
+    }
+
+    func getAccessToken() -> String? {
+        lock.withLock { token }
+    }
+
+    func deleteAccessToken() throws {
+        lock.withLock { token = nil }
+    }
+}
+#endif
+
 // MARK: - KeychainTokenStore
 
 /// Production token store backed by the macOS/iOS Keychain.

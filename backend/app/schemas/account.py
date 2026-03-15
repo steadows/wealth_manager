@@ -7,6 +7,7 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.enums import AccountType
+from app.schemas.common import JsonDecimal
 
 
 class AccountCreate(BaseModel):
@@ -59,8 +60,8 @@ class AccountResponse(BaseModel):
     institution_name: str
     account_name: str
     account_type: str
-    current_balance: Decimal
-    available_balance: Decimal | None = None
+    current_balance: JsonDecimal
+    available_balance: JsonDecimal | None = None
     currency: str
     is_manual: bool
     is_hidden: bool

@@ -107,18 +107,30 @@ private struct ChatBubble: View {
     private var isUser: Bool { message.role == "user" }
 
     var body: some View {
-        HStack {
+        HStack(alignment: .top) {
             if isUser { Spacer(minLength: 48) }
-            Text(message.content)
-                .font(WMTypography.body)
-                .foregroundStyle(isUser ? .white : WMColors.textPrimary)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(isUser ? WMColors.primary : WMColors.glassBg)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
+            Group {
+                if isUser {
+                    Text(message.content)
+                        .font(WMTypography.body)
+                } else {
+                    markdownBody
+                }
+            }
+            .foregroundStyle(isUser ? .white : WMColors.textPrimary)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(isUser ? WMColors.primary : WMColors.glassBg)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
             if !isUser { Spacer(minLength: 48) }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(isUser ? "You" : "Advisor"): \(message.content)")
+    }
+
+    /// Renders the assistant message with block-level markdown support
+    /// (headings, bullets, dividers) plus inline bold/italic.
+    private var markdownBody: some View {
+        MarkdownText(text: message.content)
     }
 }

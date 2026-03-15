@@ -249,48 +249,65 @@ struct AddAccountView: View {
     private var plaidLinkContent: some View {
         VStack(spacing: 16) {
             if let vm = plaidViewModel {
-                if vm.isLoading {
-                    ProgressView("Connecting to Plaid...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if vm.state == .linkReady, let url = vm.currentLinkURL {
-                    #if os(macOS)
-                    PlaidLinkWebView(
-                        url: url,
-                        onSuccess: { publicToken, _ in
-                            Task {
-                                await vm.handlePublicToken(publicToken)
-                                handlePlaidResult(vm)
-                            }
-                        },
-                        onExit: { _, _ in
-                            vm.handleExit()
-                            step = .choose
-                        }
-                    )
-                    #elseif os(iOS)
-                    PlaidLinkiOSContentView(
-                        linkToken: vm.linkToken ?? "",
-                        handler: plaidLinkHandler,
-                        onResult: { result in
-                            Task {
-                                await vm.handleLinkResult(result)
-                                handlePlaidResult(vm)
-                            }
-                        },
-                        onExit: {
-                            vm.handleExit()
-                            step = .choose
-                        }
-                    )
-                    #endif
-                } else if vm.state == .linked {
-                    plaidSuccessView(accounts: vm.linkedAccounts)
-                } else if let error = vm.error {
-                    plaidErrorView(message: error)
-                }
+                plaidLinkStateView(vm: vm)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    @ViewBuilder
+    private func plaidLinkStateView(vm: PlaidLinkViewModel) -> some View {
+        switch vm.state {
+        case .loading:
+            ProgressView("Connecting to Plaid...")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+        case .hostedLinkReady:
+            ProgressView("Connecting to your bank...")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+        case .resolving:
+            ProgressView("Verifying connection...")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+        case .linkReady:
+            #if os(iOS)
+            PlaidLinkiOSContentView(
+                linkToken: vm.linkToken ?? "",
+                handler: plaidLinkHandler,
+                onResult: { result in
+                    Task {
+                        await vm.handleLinkResult(result)
+                        handlePlaidResult(vm)
+                    }
+                },
+                onExit: {
+                    vm.handleExit()
+                    step = .choose
+                }
+            )
+            #else
+            // macOS uses Hosted Link flow — linkReady state not expected
+            EmptyView()
+            #endif
+
+        case .linked:
+            plaidSuccessView(accounts: vm.linkedAccounts)
+
+        case .idle:
+            // User exited hosted link — return to choose step
+            Color.clear
+                .onAppear { step = .choose }
+
+        case .exchanging:
+            ProgressView("Exchanging token...")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+        case .error:
+            if let error = vm.error {
+                plaidErrorView(message: error)
+            }
+        }
     }
 
     private func plaidSuccessView(accounts: [Account]) -> some View {
@@ -341,7 +358,12 @@ struct AddAccountView: View {
         plaidViewModel = vm
         step = .plaidLink
         Task {
+            #if os(macOS)
+            await vm.startHostedLinking()
+            handlePlaidResult(vm)
+            #else
             await vm.startLinking()
+            #endif
         }
     }
 

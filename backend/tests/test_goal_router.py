@@ -83,7 +83,7 @@ class TestCreateGoal:
         assert body["success"] is True
         assert body["data"]["goal_name"] == "Emergency Fund"
         assert body["data"]["goal_type"] == GoalType.EMERGENCY_FUND.value
-        assert Decimal(body["data"]["target_amount"]) == Decimal("25000.00")
+        assert body["data"]["target_amount"] == 25000.00
         assert body["data"]["priority"] == GoalPriority.HIGH.value
 
     async def test_create_returns_id(self, client: AsyncClient) -> None:
@@ -212,7 +212,7 @@ class TestCreateGoal:
         resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 201
-        assert Decimal(resp.json()["data"]["current_amount"]) == Decimal("0")
+        assert resp.json()["data"]["current_amount"] == 0.0
 
     async def test_create_defaults_is_active_true(self, client: AsyncClient) -> None:
         """is_active defaults to True when not provided."""
@@ -270,7 +270,7 @@ class TestCreateGoal:
         resp = await client.post("/api/v1/goals/", json=payload, headers=_auth_headers())
 
         assert resp.status_code == 201
-        assert Decimal(resp.json()["data"]["target_amount"]) == Decimal("123456.7891")
+        assert resp.json()["data"]["target_amount"] == 123456.7891
 
     async def test_create_with_all_optional_fields(self, client: AsyncClient) -> None:
         """Goal creation succeeds with all optional fields specified."""
@@ -286,8 +286,8 @@ class TestCreateGoal:
 
         assert resp.status_code == 201
         data = resp.json()["data"]
-        assert Decimal(data["current_amount"]) == Decimal("5000.00")
-        assert Decimal(data["monthly_contribution"]) == Decimal("500.00")
+        assert data["current_amount"] == 5000.00
+        assert data["monthly_contribution"] == 500.00
         assert data["notes"] == "Save for rainy day"
         assert data["is_active"] is False
 

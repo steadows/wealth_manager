@@ -7,6 +7,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.common import JsonDecimal
+
 # ── Enums ──
 
 
@@ -53,7 +55,7 @@ class AccountSummary(BaseModel):
     account_name: str
     institution_name: str
     account_type: str
-    current_balance: Decimal
+    current_balance: JsonDecimal
 
 
 class DebtSummary(BaseModel):
@@ -61,9 +63,9 @@ class DebtSummary(BaseModel):
 
     debt_name: str
     debt_type: str
-    current_balance: Decimal
-    interest_rate: Decimal
-    minimum_payment: Decimal
+    current_balance: JsonDecimal
+    interest_rate: JsonDecimal
+    minimum_payment: JsonDecimal
 
 
 class GoalSummary(BaseModel):
@@ -71,8 +73,8 @@ class GoalSummary(BaseModel):
 
     goal_name: str
     goal_type: str
-    target_amount: Decimal
-    current_amount: Decimal
+    target_amount: JsonDecimal
+    current_amount: JsonDecimal
     target_date: datetime | None = None
 
 
@@ -80,11 +82,11 @@ class UserFinancialSnapshot(BaseModel):
     """Aggregated financial picture for a user — injected into prompts."""
 
     user_id: uuid.UUID
-    net_worth: Decimal
-    total_assets: Decimal
-    total_liabilities: Decimal
-    annual_income: Decimal | None = None
-    monthly_expenses: Decimal | None = None
+    net_worth: JsonDecimal
+    total_assets: JsonDecimal
+    total_liabilities: JsonDecimal
+    annual_income: JsonDecimal | None = None
+    monthly_expenses: JsonDecimal | None = None
     filing_status: str = "single"
     risk_tolerance: str = "moderate"
     retirement_age: int = 65
@@ -101,8 +103,8 @@ class RetirementAnalysis(BaseModel):
     """Structured retirement analysis from Claude."""
 
     readiness_score: int = Field(ge=0, le=100)
-    projected_shortfall: Decimal
-    fire_number: Decimal
+    projected_shortfall: JsonDecimal
+    fire_number: JsonDecimal
     years_to_fire: int | None = None
     recommendations: list[str]
     summary: str
@@ -111,8 +113,8 @@ class RetirementAnalysis(BaseModel):
 class TaxAnalysis(BaseModel):
     """Structured tax analysis from Claude."""
 
-    estimated_tax_burden: Decimal
-    effective_rate: Decimal
+    estimated_tax_burden: JsonDecimal
+    effective_rate: JsonDecimal
     optimization_opportunities: list[str]
     harvesting_candidates: list[str]
     summary: str
@@ -121,10 +123,10 @@ class TaxAnalysis(BaseModel):
 class DebtAnalysis(BaseModel):
     """Structured debt strategy analysis from Claude."""
 
-    total_debt: Decimal
-    weighted_avg_rate: Decimal
+    total_debt: JsonDecimal
+    weighted_avg_rate: JsonDecimal
     recommended_strategy: str  # "avalanche" | "snowball" | "hybrid"
-    monthly_savings_potential: Decimal
+    monthly_savings_potential: JsonDecimal
     payoff_timeline_months: int
     recommendations: list[str]
     summary: str
@@ -151,7 +153,7 @@ class CFOBriefing(BaseModel):
     insights: list[BriefingInsight]
     action_items: list[str]
     goal_progress: list[GoalSummary]
-    net_worth_change: Decimal
+    net_worth_change: JsonDecimal
 
 
 class BriefingSchema(BaseModel):

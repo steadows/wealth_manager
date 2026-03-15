@@ -65,6 +65,14 @@ final class AccountsViewModel {
         await loadAccounts()
     }
 
+    /// Upserts Plaid-linked accounts into the local store, then reloads.
+    func upsertLinkedAccounts(_ accounts: [Account]) async {
+        for account in accounts {
+            try? await accountRepo.upsert(account)
+        }
+        await loadAccounts()
+    }
+
     /// Toggles the hidden state of an account.
     func toggleHidden(_ account: Account) async throws {
         // SwiftData @Model objects are reference types — toggle in place and save
